@@ -1,0 +1,11 @@
+.to-checkout {
+    background-color: var(--primary);
+    box-shadow: 3px 2px var(--primary-dark);
+
+    border: none;
+    padding: .8rem 1rem;
+
+    color: var(--font);
+    font-weight: 600;
+    font-size: 18px;
+}

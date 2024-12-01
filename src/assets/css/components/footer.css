@@ -1,0 +1,47 @@
+footer {
+    background-color: var(--primary-light);
+
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+
+    border-top: 2px solid var(--primary-bright);
+
+    transition: .2s ease-in-out;
+
+    ul {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+
+        padding: .5rem;
+        li {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+
+    .whatsapp {
+        figure {
+            &:after {
+                content: "";
+                mask: url("../../svg/whatsapp.svg") no-repeat center;
+                mask-size: 100%;
+                background-color: var(--font);
+
+                display: block;
+                width: 3rem;
+                aspect-ratio: 1;
+            }
+        }
+    }
+      
+    &.hidden {
+        transform: translateY(100%); /* Esconde o footer */
+    }
+    
+    &.visible {
+        transform: translateY(0); /* Mostra o footer */
+    }
+}

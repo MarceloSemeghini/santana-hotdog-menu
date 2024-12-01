@@ -1,0 +1,20 @@
+@import 'global.css';
+
+@import './default/color.css';
+
+@import './components/header.css';
+@import './components/footer.css';
+@import './components/menu.css';
+
+* {
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+body {
+  min-height: 100vh;
+
+  background-color: var(--primary-light);
+}
