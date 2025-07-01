@@ -3,18 +3,21 @@
 @import './default/color.css';
 
 @import './components/header.css';
-@import './components/footer.css';
+@import './components/floater.css';
 @import './components/menu.css';
+@import './components/checkout.css';
 
 * {
   margin: 0;
   padding: 0;
 
   list-style: none;
+
+  font-family: 'raleway';
 }
 
 body {
   min-height: 100vh;
 
-  background-color: var(--primary-light);
+  background-color: var(--clear);
 }

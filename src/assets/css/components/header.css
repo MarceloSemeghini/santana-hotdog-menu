@@ -2,18 +2,27 @@ header {
     position: fixed;
     width: 100%;
 
-    background-color: var(--primary-dark);
+    background-color: var(--secondary);
+    border-bottom: 2px solid var(--secondary-dark);
+
+    box-shadow: 0px -3px 10px var(--primary);
+
     .logo {
+        position: relative;
+        height: 4rem;
         .brand-name {
           display: none;
         } 
 
         &:after {
+            position: absolute;
+            top: 0;
+            left: 0;
             content: "";
             background: url("../../svg/logo.svg") no-repeat center;
             background-size: 100%;
             display: block;
-            width: 6rem;
+            height: 200%;
             aspect-ratio: 1;
         }
     }

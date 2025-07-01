@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-function Footer() {
+function Floater() {
   const [isVisible, setIsVisible] = useState(true); // Estado de visibilidade do footer
   const [lastScrollY, setLastScrollY] = useState(0); // Última posição de scroll
 
@@ -26,19 +26,17 @@ function Footer() {
   }, [lastScrollY]);
 
   return (
-    <footer className={`footer ${isVisible ? 'visible' : 'hidden'}`}>
-      <ul>
-        <li>
-          <a className="whatsapp">
+    <div className={`floater ${isVisible ? 'visible' : 'hidden'}`}>
+      <ul className='floater-info'>
+        <li className='floater-link'>
+          <a className="whatsapp" href='/'>
             <figure />
           </a>
         </li>
-        <li>
-          <button className='to-checkout'>Continuar</button>
-        </li>
+        <li className='summary-wrapper' id='floating-summary'/>
       </ul>
-    </footer>
+    </div>
   );
 }
 
-export default Footer;
+export default Floater;

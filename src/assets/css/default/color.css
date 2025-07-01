@@ -1,9 +1,13 @@
 :root {
-    --primary-dark: #f44034;
-    --primary: #ff6d1f;
-    --primary-light: #ffc105;
-    --primary-bright: #ffec3d;
-    --secondary: #4cae4f;
+    --clear: #fff9f3;
 
-    --font: #f1f1f1;
+    --font-primary: #7a5233;
+    --font-secondary: #4a2f1b;
+
+    --primary: #ff6d1f;
+    --primary-dark: #e34f1e;
+
+    --secondary: #fff4df;
+    --secondary-dark: #fbc938;
+    --secondary-light: #ffffff;
 }
