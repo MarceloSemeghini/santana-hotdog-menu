@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import MenuItem from "./menuItem";
-import Floater from "./floater";
+import Floater from "../floater";
 
-function Menu({list, setList}) {
+function Menu({list, setList, categories}) {
 
     function handleCart(item) {
         setList(prev => {
@@ -21,21 +21,6 @@ function Menu({list, setList}) {
             secondary.innerHTML = checkout.innerHTML;
         }
     }, [list]);
-
-    const menuCategories = [
-        {
-            id: 1,
-            name: "Lanches"
-        },
-        {
-            id: 2,
-            name: "Doces"
-        },
-        {
-            id: 3,
-            name: "Bebidas"
-        },
-    ]
 
     const menuAditions = [
         {
@@ -159,11 +144,11 @@ function Menu({list, setList}) {
 
     return (
         <div className="menu">
-            {menuCategories.map((category) => {
+            {categories.map((category) => {
                 const additions = menuAditions.filter(adition => adition.category === category.name);
                 return (
-                    <div key={category.id} className="menu-category">
-                        <span className="category-title"> {category.name} </span>
+                    <div key={category.id} className="category">
+                        <span className="title" data-key={category.id} data-scroll-target> {category.name} </span>
                         {menuItems.filter(menuItem => menuItem.category === category.name).map((item) => (
                             <MenuItem key={item.id} item={item} handleCart={handleCart} additions={additions}/>
                         ))}

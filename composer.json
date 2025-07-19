@@ -1,0 +1,17 @@
+{
+    "name": "marcelo/santana-hotdog-menu",
+    "autoload": {
+        "psr-4": {
+            "Marcelo\\SantanaHotdogMenu\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Marcelo Santesso Semeghini",
+            "email": "marcelo.semeghini@upmat.com.br"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^6.11"
+    }
+}

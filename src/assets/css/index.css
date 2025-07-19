@@ -1,11 +1,18 @@
 @import 'global.css';
 
 @import './default/color.css';
+@import './default/text.css';
+
+@import './pages/auth.css';
+@import './pages/admin.css';
 
 @import './components/header.css';
 @import './components/floater.css';
+
 @import './components/menu.css';
 @import './components/checkout.css';
+
+@import './card.css';
 
 * {
   margin: 0;

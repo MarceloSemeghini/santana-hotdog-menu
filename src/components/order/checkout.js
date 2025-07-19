@@ -3,10 +3,10 @@ import { IoMdCloseCircle } from "react-icons/io";
 function Checkout({ list, removeItem }) {
     return (
         <div className="checkout">
-            <span className="checkout-title">Carrinho</span>
+            <span className="title">Carrinho</span>
 
             {list.map((item, index) => (
-                <div key={index} className="item-wrapper">
+                <div key={item.id} className="item-wrapper">
                     <li className="cart-item">
                         <div className="item-header">
                             {item.name} <span>- {item.price.toFixed(2)}</span>
@@ -15,7 +15,7 @@ function Checkout({ list, removeItem }) {
                         {item.additions && item.additions.length > 0 && 
                             <div className="item-bottom">
                                 {item.additions.map((addition, index) => 
-                                    <span className="item-extra">
+                                    <span className="item-extra" key={addition.id}>
                                         <strong>{addition.name}</strong>{index + 1 < item.additions.length ? index + 2 < item.additions.length ? ", " : " e " : "."}
                                     </span>
                                 )}
@@ -40,7 +40,7 @@ function Checkout({ list, removeItem }) {
                 }, 0).toFixed(2)}
             </span>
 
-            <span className="name-input">
+            <span className="name-input subtitle">
                 Nome
                 <input type="text" id="name" />
             </span>

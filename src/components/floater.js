@@ -1,27 +1,24 @@
 import { useState, useEffect } from 'react';
 
 function Floater() {
-  const [isVisible, setIsVisible] = useState(true); // Estado de visibilidade do footer
-  const [lastScrollY, setLastScrollY] = useState(0); // Última posição de scroll
+  const [isVisible, setIsVisible] = useState(true); 
+  const [lastScrollY, setLastScrollY] = useState(0); 
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // Determina se o footer deve aparecer ou desaparecer
       if (currentScrollY > lastScrollY) {
-        setIsVisible(false); // Scroll para baixo, esconder
+        setIsVisible(false);
       } else {
-        setIsVisible(true); // Scroll para cima, mostrar
+        setIsVisible(true);
       }
 
-      setLastScrollY(currentScrollY); // Atualiza a última posição
+      setLastScrollY(currentScrollY);
     };
 
-    // Adiciona o evento de scroll
     window.addEventListener('scroll', handleScroll);
 
-    // Limpa o evento ao desmontar o componente
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 

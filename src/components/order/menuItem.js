@@ -32,8 +32,8 @@ function MenuItem({ item, handleCart, additions }) {
     };
 
     return (
-        <div className={`menu-card${selected ? " selected" : ""}`}>
-            <div className={`menu-item${item.image ? ' has-image' : ''}${item.ingredients.length !== 0 ? ' has-ingredients' : ''}`}>
+        <div className={`card ${selected ? " selected" : ""}`}>
+            <div className={`item grid ${item.image ? ' has-image' : ''}${item.ingredients.length !== 0 ? ' has-ingredients' : ''}`}>
                 <h3 className="item-name">
                     {item.name}
                 </h3>
