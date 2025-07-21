@@ -10,15 +10,8 @@
     color: var(--font-primary);
   }
   .proceed {
-    background-color: var(--primary);
-    box-shadow: 0px 0px 3px var(--primary);
-
-    border: none;
-    border-radius: 0.5rem;
     padding: 0.8rem 1rem;
-
     color: var(--clear);
-    font-weight: 600;
     font-size: 14px;
   }
 }
@@ -33,6 +26,7 @@
 
 button {
   height: min-content;
+  width: min-content;
 
   background-color: var(--primary);
   border: none;
@@ -50,5 +44,33 @@ button {
     border: none;
     color: var(--primary);
     padding: 0;
+
+    &.floating {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translate(0, -50%);
+      padding: 0 0.5rem;
+    }
+  }
+}
+
+input {
+  border: 2px solid var(--secondary-dark);
+  padding: 0.5rem;
+  background: var(--secondary);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--font-primary);
+
+  transition: 0.2s all ease-in-out;
+
+  &:focus {
+    outline: none;
+    background-color: var(--secondary);
+    border: 2px solid var(--primary);
   }
 }

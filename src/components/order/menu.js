@@ -50,7 +50,6 @@ function Menu({list, setList, categories}) {
             name: "Cachorro-Quente Simples",
             ingredients: ["Pão", "Salsicha", "Molho de Tomate"],
             price: 8.50,
-            image: ""
         },
         {
             id: 2,
@@ -58,7 +57,6 @@ function Menu({list, setList, categories}) {
             name: "Cachorro-Quente com Queijo",
             ingredients: ["Pão", "Salsicha", "Queijo", "Molho de Tomate"],
             price: 10.00,
-            image: "./img/hotdog-photo.png"
         },
         {
             id: 3,
@@ -66,7 +64,6 @@ function Menu({list, setList, categories}) {
             name: "Cachorro-Quente Especial",
             ingredients: ["Pão", "Salsicha", "Bacon", "Cebola Crispy", "Queijo Cheddar"],
             price: 12.00,
-            image: "./img/hotdog-photo.png"
         },
         {
             id: 4,
@@ -74,7 +71,6 @@ function Menu({list, setList, categories}) {
             name: "Cachorro-Quente com Bacon",
             ingredients: ["Pão", "Salsicha", "Bacon", "Cebola Crispy", "Queijo Cheddar", "Bacon"],
             price: 12.00,
-            image: ""
         },
         {
             id: 5,
@@ -82,7 +78,6 @@ function Menu({list, setList, categories}) {
             name: "Cachorro-Quente Simples",
             ingredients: ["Pão", "Salsicha", "Molho de Tomate"],
             price: 8.50,
-            image: ""
         },
         {
             id: 6,
@@ -90,7 +85,6 @@ function Menu({list, setList, categories}) {
             name: "Cachorro-Quente com Queijo",
             ingredients: ["Pão", "Salsicha", "Queijo", "Molho de Tomate"],
             price: 10.00,
-            image: "./img/hotdog-photo.png"
         },
         {
             id: 7,
@@ -98,7 +92,6 @@ function Menu({list, setList, categories}) {
             name: "Cachorro-Quente Especial",
             ingredients: ["Pão", "Salsicha", "Bacon", "Cebola Crispy", "Queijo Cheddar"],
             price: 12.00,
-            image: "./img/hotdog-photo.png"
         },
         {
             id: 8,
@@ -106,7 +99,6 @@ function Menu({list, setList, categories}) {
             name: "Cachorro-Quente com Bacon",
             ingredients: ["Pão", "Salsicha", "Bacon", "Cebola Crispy", "Queijo Cheddar", "Bacon"],
             price: 12.00,
-            image: "./img/hotdog-photo.png"
         },
         {
             id: 9,
@@ -114,7 +106,6 @@ function Menu({list, setList, categories}) {
             name: "Cola-Cola",
             ingredients: [],
             price: 9.00,
-            image: ""
         },
         {
             id: 10,
@@ -122,7 +113,6 @@ function Menu({list, setList, categories}) {
             name: "Sprite",
             ingredients: [],
             price: 7.00,
-            image: ""
         },
         {
             id: 11,
@@ -130,7 +120,6 @@ function Menu({list, setList, categories}) {
             name: "Kit-Kat",
             ingredients: [],
             price: 7.00,
-            image: ""
         },
         {
             id: 12,
@@ -138,7 +127,6 @@ function Menu({list, setList, categories}) {
             name: "Snickers",
             ingredients: [],
             price: 7.00,
-            image: ""
         },
     ];
 

@@ -33,15 +33,10 @@ function MenuItem({ item, handleCart, additions }) {
 
     return (
         <div className={`card ${selected ? " selected" : ""}`}>
-            <div className={`item grid ${item.image ? ' has-image' : ''}${item.ingredients.length !== 0 ? ' has-ingredients' : ''}`}>
+            <div className={`item grid ${item.ingredients.length !== 0 ? ' has-ingredients' : ''}`}>
                 <h3 className="item-name">
                     {item.name}
                 </h3>
-                {item.image && 
-                    <figure className="item-image">
-                        <img src={item.image} alt={item.name}/>
-                    </figure>
-                }
                 {item.ingredients.length > 0 &&
                     <ul className="item-ingredients">
                         {item.ingredients.map((ingredient, index) => (

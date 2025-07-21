@@ -95,24 +95,6 @@
     font-weight: 600;
     color: var(--font-primary);
   }
-
-  input {
-    border: 2px solid var(--secondary-dark);
-    padding: 0.5rem;
-    background: var(--secondary);
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--font-primary);
-
-    transition: 0.2s all ease-in-out;
-
-    &:focus {
-      outline: none;
-      background-color: var(--secondary);
-      border: 2px solid var(--primary);
-    }
-  }
-
   .remove {
     color: var(--primary);
   }  
