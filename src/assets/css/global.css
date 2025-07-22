@@ -1,3 +1,37 @@
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  .action {
+    justify-content: space-between !important;
+  }
+
+  .subform {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+input, textarea {
+  background: var(--clear);
+  border: 2px solid var(--secondary);
+  padding: 0.2rem 0.5rem;
+
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--font-secondary);
+
+  &:focus {
+    border: 2px solid var(--primary);
+    outline: none;
+  }
+
+  &::placeholder {
+    color: var(--font-primary);
+  }
+}
+
 button {
   border: none;
   border-radius: 2rem;
@@ -8,7 +42,6 @@ button {
   font-weight: 800;
   font-size: 14px;
 }
-
 .page {
   min-height: 100vh;
 }
@@ -40,7 +73,7 @@ button {
 
   text-align: left;
 
-  .card-actions{
+  .card-actions {
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -48,4 +81,9 @@ button {
     align-self: stretch;
     justify-content: flex-end;
   }
+}
+
+.separator {
+  width: 100%;
+  border: 2px dashed var(--secondary);
 }

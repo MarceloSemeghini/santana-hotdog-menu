@@ -40,7 +40,7 @@ function Auth() {
       <Header />
       <div className="container">
         <form onSubmit={_HandleSubmit}>
-          <label for="email">Email</label>
+          <label htmlFor="email">Email</label>
           <input
             type="text"
             id="email"
@@ -49,7 +49,7 @@ function Auth() {
             onChange={(e) => setUser({ ...user, email: e.target.value })}
           />
 
-          <label for="password">Senha</label>
+          <label htmlFor="password">Senha</label>
           <div style={{ position: "relative" }}>
             <input
               type={showPassword ? "text" : "password"}

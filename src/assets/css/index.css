@@ -1,14 +1,14 @@
-@import 'global.css';
+@import "global.css";
 
-@import './default/color.css';
-@import './default/text.css';
+@import "./default/color.css";
+@import "./default/text.css";
 
-@import './components/actions.css';
-@import './components/header.css';
-@import './components/modal.css';
+@import "./pages/home.css";
+@import "./pages/admin.css";
 
-@import './pages/home.css';
-@import './pages/admin.css';
+@import "./components/actions.css";
+@import "./components/header.css";
+@import "./components/modal.css";
 
 * {
   margin: 0;
@@ -16,7 +16,7 @@
 
   list-style: none;
 
-  font-family: 'raleway';
+  font-family: "raleway";
 }
 
 body {

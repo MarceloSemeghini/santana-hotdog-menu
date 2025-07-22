@@ -15,8 +15,11 @@
   #modal {
     background-color: var(--secondary-light);
     padding: 1rem;
+    margin: 1rem;
     border-radius: 1rem;
     border: 2px solid var(--primary);
+    max-height: 80vh;
+    overflow-y: auto;
   }
 
   &.active {

@@ -16,7 +16,7 @@ function Modal({ children, active, close }) {
     };
   }, []);
   return (
-    <div id="overlay" className={active && "active"}>
+    <div id="overlay" className={active ? "active" : ""}>
       <div id="modal" ref={wrapperRef}>
         {children}
       </div>
