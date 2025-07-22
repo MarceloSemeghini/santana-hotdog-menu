@@ -3,16 +3,12 @@
 @import './default/color.css';
 @import './default/text.css';
 
-@import './pages/auth.css';
-@import './pages/admin.css';
-
+@import './components/actions.css';
 @import './components/header.css';
-@import './components/floater.css';
+@import './components/modal.css';
 
-@import './components/menu.css';
-@import './components/checkout.css';
-
-@import './card.css';
+@import './pages/home.css';
+@import './pages/admin.css';
 
 * {
   margin: 0;

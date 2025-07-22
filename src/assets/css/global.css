@@ -1,76 +1,51 @@
-.summary-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-
-  span {
-    font-size: 24px;
-    font-weight: 500;
-    color: var(--font-primary);
-  }
-  .proceed {
-    padding: 0.8rem 1rem;
-    color: var(--clear);
-    font-size: 14px;
-  }
+button {
+  border: none;
+  border-radius: 2rem;
+  background-color: var(--primary);
+  height: fit-content;
+  padding: 0.5rem 1rem;
+  color: var(--clear);
+  font-weight: 800;
+  font-size: 14px;
 }
 
 .page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem;
-  padding-top: 6.5rem;
+  min-height: 100vh;
 }
 
-button {
-  height: min-content;
-  width: min-content;
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 6rem 2rem 2rem;
+  gap: 2rem;
 
-  background-color: var(--primary);
-  border: none;
-  border-radius: 1rem;
+  text-align: center;
 
-  color: var(--clear);
-  font-size: 24px;
-  font-weight: 600;
-
-  padding: 0.5rem 1rem;
-
-  &.icon {
-    background-color: transparent;
-    box-shadow: none;
-    border: none;
-    color: var(--primary);
-    padding: 0;
-
-    &.floating {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translate(0, -50%);
-      padding: 0 0.5rem;
-    }
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 }
 
-input {
-  border: 2px solid var(--secondary-dark);
-  padding: 0.5rem;
-  background: var(--secondary);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--font-primary);
+.card {
+  background-color: var(--secondary-light);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px solid var(--secondary);
+  border-radius: 1rem;
 
-  transition: 0.2s all ease-in-out;
+  text-align: left;
 
-  &:focus {
-    outline: none;
-    background-color: var(--secondary);
-    border: 2px solid var(--primary);
+  .card-actions{
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    align-self: stretch;
+    justify-content: flex-end;
   }
 }

@@ -1,5 +1,5 @@
 <?php
-require_once 'bootstrap.php'; // já inclui conexão $conn e headers
+require_once 'bootstrap.php';
 require_once 'vendor/autoload.php';
 
 global $key;

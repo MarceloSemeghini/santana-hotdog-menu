@@ -1,0 +1,32 @@
+#actions {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 2rem;
+  aspect-ratio: 1;
+
+  .actions-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+  }
+
+  .actions {
+    position: absolute;
+    top: -1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    background-color: var(--secondary-light);
+    border: 2px solid var(--secondary);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    z-index: 9;
+  }
+}

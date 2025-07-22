@@ -1,9 +1,27 @@
-.admin {
-    .content-wrapper {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 1rem;
+#admin {
+  bold {
+    font-size: 28px;
+  }
+  .action {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+
+    .item {
+      background-color: var(--secondary);
+      padding: 0.2rem;
     }
+  }
+
+  svg {
+    color: var(--primary);
+  }
 }

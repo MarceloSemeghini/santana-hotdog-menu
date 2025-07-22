@@ -1,7 +1,6 @@
 function Header({children}) {
-
     return (
-      <header>
+      <header id="header">
         <figure className="logo">
           <h1 className="brand-name">SANTANA HOT DOG</h1>
         </figure>
