@@ -28,7 +28,7 @@ input, textarea {
   }
 
   &::placeholder {
-    color: var(--font-primary);
+    color: var(--clear-dark);
   }
 }
 

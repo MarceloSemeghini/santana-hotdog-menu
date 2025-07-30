@@ -1,5 +1,11 @@
 RewriteEngine On
+
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}\.php -f
 RewriteRule ^(.*)$ $1.php [L]
+
+<LimitExcept GET POST PUT DELETE OPTIONS>
+  Deny from all
+</LimitExcept>
+
 AddDefaultCharset UTF-8

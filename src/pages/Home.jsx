@@ -36,7 +36,7 @@ function Home() {
                               index === 0
                                 ? ingredient.charAt(0).toUpperCase() +
                                   ingredient.slice(1) +
-                                  " "
+                                  ", "
                                 : item.ingredients.length === index + 2
                                 ? `${ingredient} e `
                                 : item.ingredients.length === index + 1

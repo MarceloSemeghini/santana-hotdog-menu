@@ -13,6 +13,7 @@ function Admin() {
   const [openModal, setOpenModal] = useState(false);
   const [form, setForm] = useState({});
   const [type, setType] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const defaultCategory = { name: "", additions: [] };
   const defaultAddition = {
     name: "",
@@ -21,7 +22,7 @@ function Admin() {
   const defaultItem = {
     name: "",
     price: 0.0,
-    ingredients: [],
+    ingredients: "",
   };
 
   const _openModal = (form, type) => {
@@ -30,93 +31,134 @@ function Admin() {
     setType(type);
   };
 
-  const _handleDelete = async (type, id) => {
-    switch (type) {
-      case "category":
-        try {
-          await axios.delete(`${api}/menu/categories?id=${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
+  const _handleDelete = async (id, category = null) => {
+    try {
+      if (category) {
+        const updatedCategory = {
+          ...category,
+          items: category.items.map((item) =>
+            item.id === id ? { ...item, status: "delete" } : item
+          ),
+        };
 
-          setCategories((prev) => prev.filter((cat) => cat.id !== id));
-        } catch (error) {
-          if (error.response && error.response.status === 401) {
-            localStorage.removeItem("authToken");
-            window.location.href = "/auth";
-          } else {
-            console.error(
-              "Erro ao deletar categoria:",
-              error.response?.data || error.message
-            );
-          }
-        }
-        break;
-      default:
-        break;
+        const response = await axios.put(`${api}/menu`, updatedCategory, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const updated = response.data.category;
+
+        setCategories((prev) =>
+          prev.map((cat) => (cat.id === updated.id ? updated : cat))
+        );
+      } else {
+        await axios.delete(`${api}/menu?id=${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        setCategories((prev) => prev.filter((cat) => cat.id !== id));
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        localStorage.removeItem("authToken");
+        window.location.href = "/auth";
+      } else {
+        console.error(
+          "Erro ao deletar categoria:",
+          error.response?.data || error.message
+        );
+      }
     }
+    setSelectedCategory(null);
   };
 
   const _handleSubmit = async (e) => {
     e.preventDefault();
-    switch (type) {
-      case "category":
-        try {
-          const response = await axios.post(`${api}/menu/categories`, form, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
 
-          const createdCategory = {
+    try {
+      if (selectedCategory) {
+        let updatedCategory = { ...selectedCategory };
+
+        if (type === "item") {
+          const ingredients = form.ingredients
+            .split(",")
+            .map((ing) => ing.trim())
+            .filter(Boolean);
+
+          const itemData = {
             ...form,
-            id: response.data.categoryId,
-            items: [],
+            ingredients: ingredients,
           };
 
-          setCategories((prev) => [...prev, createdCategory]);
-          setOpenModal(false);
-          setForm({});
-        } catch (error) {
-          if (error.response && error.response.status === 401) {
-          } else {
-            console.error(
-              "Erro ao criar categoria:",
-              error.response?.data || error.message
+          if (form.id) {
+            updatedCategory.items = updatedCategory.items.map((item) =>
+              item.id === form.id ? itemData : item
             );
+          } else {
+            updatedCategory.items = [
+              ...(updatedCategory.items || []),
+              { ...itemData, status: "new" },
+            ];
           }
         }
-        break;
-      case "item":
-        try {
-          const response = await axios.post(`${api}/menu/items`, form, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
-        } catch (error) {
-          if (error.response && error.response.status === 401) {
-          } else {
-            console.error(
-              "Erro ao criar categoria:",
-              error.response?.data || error.message
-            );
-          }
-        }
-        break;
-      default:
-        break;
+
+        const response = await axios.put(`${api}/menu`, updatedCategory, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        updatedCategory = response.data.category;
+
+        setCategories((prev) =>
+          prev.map((category) =>
+            category.id === updatedCategory.id ? updatedCategory : category
+          )
+        );
+      } else {
+        let newCategory = form;
+
+        const response = await axios.post(`${api}/menu`, form, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        newCategory = {
+          ...form,
+          id: response.data.categoryId,
+          items: [],
+        };
+
+        setCategories((prev) => [...prev, newCategory]);
+      }
+      setSelectedCategory(null);
+      setOpenModal(false);
+      setForm({});
+    } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem("authToken");
+        window.location.href = "/auth";
+      } else {
+        console.error(
+          "Erro ao enviar categoria:",
+          error.response?.data || error.message
+        );
+      }
     }
   };
 
   useEffect(() => {
     if (token) {
       try {
-        axios.get(`${api}/menu.php`).then((response) => {
+        axios.get(`${api}/menu`).then((response) => {
           setCategories(response.data.data);
         });
       } catch (error) {
@@ -149,7 +191,7 @@ function Admin() {
                   <FaCopy size={"2rem"} />
                   <FaTrash
                     size={"2rem"}
-                    onClick={() => _handleDelete("category", category.id)}
+                    onClick={() => _handleDelete(category.id)}
                   />
                 </Actions>
               </h2>
@@ -157,11 +199,14 @@ function Admin() {
                 Itens{" "}
                 <FaCirclePlus
                   size={"1.5rem"}
-                  onClick={() => _openModal(defaultItem, "item")}
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    _openModal(defaultItem, "item");
+                  }}
                 />
               </h2>
               {category.items.map((item) => (
-                <div className="card" key={item.name}>
+                <div className="card" key={item.id}>
                   <div className="card-content">
                     <h3 className="subtitle">{item.name} </h3>
                     <div className="list">
@@ -180,7 +225,12 @@ function Admin() {
                     <Actions>
                       <FaEdit size={"2rem"} />
                       <FaCopy size={"2rem"} />
-                      <FaTrash size={"2rem"} />
+                      <FaTrash
+                        size={"2rem"}
+                        onClick={() => {
+                          _handleDelete(item.id, category);
+                        }}
+                      />
                     </Actions>
                     <span className="price">
                       {parseFloat(item.price).toFixed(2)}
@@ -218,71 +268,7 @@ function Admin() {
                     id="category_name"
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                   />
-                  <span className="subtitle action">
-                    Adições da Categoria{" "}
-                    <FaCirclePlus
-                      size={"1.5rem"}
-                      onClick={() =>
-                        setForm({
-                          ...form,
-                          additions: [
-                            ...(form.additions || []),
-                            { ...defaultAddition },
-                          ],
-                        })
-                      }
-                    />
-                  </span>
-                  <div className="subform">
-                    {form.additions.map((addition, index) => (
-                      <>
-                        <label
-                          htmlFor={`addition_name_${index}`}
-                          className="subtitle action"
-                        >
-                          nome
-                          <FaTrash
-                            size={"1.5rem"}
-                            onClick={() => {
-                              const updated = form.additions.filter(
-                                (_, i) => i !== index
-                              );
-                              setForm({ ...form, additions: updated });
-                            }}
-                          />
-                        </label>
-                        <input
-                          id={`addition_name_${index}`}
-                          value={addition.name || ""}
-                          onChange={(e) => {
-                            const updated = [...form.additions];
-                            updated[index].name = e.target.value;
-                            setForm({ ...form, additions: updated });
-                          }}
-                        />
-                        <label
-                          htmlFor={`addition_price_${index}`}
-                          className="subtitle"
-                        >
-                          preço
-                        </label>
-                        <input
-                          id={`addition_price_${index}`}
-                          type="number"
-                          step="0.01"
-                          value={addition.price || 0}
-                          onChange={(e) => {
-                            const updated = [...form.additions];
-                            updated[index].price = parseFloat(e.target.value);
-                            setForm({ ...form, additions: updated });
-                          }}
-                        />
-                        {index < form.additions.length - 1 && (
-                          <span className="separator" />
-                        )}
-                      </>
-                    ))}
-                  </div>
+                  <button>Salvar</button>
                 </form>
               );
             case "item":
@@ -303,7 +289,7 @@ function Admin() {
                     type="number"
                     step="0.01"
                     onChange={(e) =>
-                      setForm[{ ...form, price: e.target.value }]
+                      setForm({ ...form, price: e.target.value })
                     }
                   />
                   <label htmlFor="item_ingredients" className="subtitle">
@@ -314,7 +300,11 @@ function Admin() {
                     rows="4"
                     cols="50"
                     placeholder="Escreva os ingredients separados por vírgula aqui..."
+                    onChange={(e) =>
+                      setForm({ ...form, ingredients: e.target.value })
+                    }
                   ></textarea>
+                  <button>Salvar</button>
                 </form>
               );
             default:
