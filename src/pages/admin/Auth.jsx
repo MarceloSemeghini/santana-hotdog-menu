@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import Header from "../../components/header";
-import axios from "axios";
 import api from "../../config";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 
@@ -16,7 +15,7 @@ function Auth() {
   const _HandleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${api}/auth`, {
+      const response = await api.post("/auth", {
         email: user.email,
         password: user.password,
       });

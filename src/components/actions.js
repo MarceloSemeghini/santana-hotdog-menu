@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaGears } from "react-icons/fa6";
 
-function Actions({ children }) {
+function Actions({ children, size }) {
   const [active, setActive] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -24,7 +24,7 @@ function Actions({ children }) {
         <div className="actions">{children}</div>
       ) : (
         <div className="actions-icon" onClick={() => setActive(true)}>
-          <FaGears size={"2rem"}/>
+          <FaGears size={size}/>
         </div>
       )}
     </div>

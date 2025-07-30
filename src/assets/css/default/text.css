@@ -17,6 +17,7 @@
 }
 
 .price {
+  text-align: center;
   color: var(--font-primary);
   font-size: 20px;
   font-weight: 800;

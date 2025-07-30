@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import Header from "../../components/header";
 import Actions from "../../components/actions";
-import axios from "axios";
 import api from "../../config";
 import { FaCirclePlus, FaCopy, FaTrash } from "react-icons/fa6";
 import { FaEdit } from "react-icons/fa";
 import Modal from "../../components/modal";
+import PriceInput from "../../components/priceInput";
 
 function Admin() {
   const token = localStorage.getItem("authToken");
@@ -41,7 +41,7 @@ function Admin() {
           ),
         };
 
-        const response = await axios.put(`${api}/menu`, updatedCategory, {
+        const response = await api.put("/menu", updatedCategory, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -54,7 +54,7 @@ function Admin() {
           prev.map((cat) => (cat.id === updated.id ? updated : cat))
         );
       } else {
-        await axios.delete(`${api}/menu?id=${id}`, {
+        await api.delete(`/menu?id=${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -84,7 +84,7 @@ function Admin() {
         additions: category.additions.filter((a) => a.name !== name),
       };
 
-      const response = await axios.put(`${api}/menu`, updatedCategory, {
+      const response = await api.put("/menu", updatedCategory, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -143,7 +143,7 @@ function Admin() {
         } else if (type === "addition") {
           const additionData = {
             name: form.name,
-            price: parseFloat(form.price),
+            price: form.price
           };
 
           const exists = updatedCategory.additions.find(
@@ -162,7 +162,7 @@ function Admin() {
           }
         }
 
-        const response = await axios.put(`${api}/menu`, updatedCategory, {
+        const response = await api.put("/menu", updatedCategory, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -178,7 +178,7 @@ function Admin() {
         );
       } else {
         if (form.id) {
-          const response = await axios.put(`${api}/menu`, form, {
+          const response = await api.put("/menu", form, {
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
@@ -195,7 +195,7 @@ function Admin() {
         } else {
           let newCategory = form;
 
-          const response = await axios.post(`${api}/menu`, form, {
+          const response = await api.post("/menu", form, {
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
@@ -230,7 +230,7 @@ function Admin() {
   useEffect(() => {
     if (token) {
       try {
-        axios.get(`${api}/menu`).then((response) => {
+        api.get("/menu").then((response) => {
           setCategories(response.data.data);
         });
       } catch (error) {
@@ -241,8 +241,6 @@ function Admin() {
       window.location.href = "/auth";
     }
   }, [token]);
-
-  console.log(form);
 
   return (
     <div className="page" id="admin">
@@ -260,7 +258,7 @@ function Admin() {
             <div className="section" key={category.name}>
               <h2 className="title action">
                 {category.name}
-                <Actions>
+                <Actions size={"2.5rem"}>
                   <FaEdit
                     size={"2rem"}
                     onClick={() => _openModal(category, "category")}
@@ -306,16 +304,16 @@ function Admin() {
                     </div>
                   </div>
                   <div className="card-actions">
-                    <Actions>
+                    <Actions size={"2rem"}>
                       <FaEdit
-                        size={"2rem"}
+                        size={"1.5rem"}
                         onClick={() => {
                           setSelectedCategory(category);
                           _openModal(item, "item");
                         }}
                       />
                       <FaCopy
-                        size={"2rem"}
+                        size={"1.5rem"}
                         onClick={() => {
                           const copiedItem = { ...item };
                           delete copiedItem.id;
@@ -324,15 +322,13 @@ function Admin() {
                         }}
                       />
                       <FaTrash
-                        size={"2rem"}
+                        size={"1.5rem"}
                         onClick={() => {
                           _handleDelete(item.id, category);
                         }}
                       />
                     </Actions>
-                    <span className="price">
-                      {parseFloat(item.price).toFixed(2)}
-                    </span>
+                    <span className="price">{item.price}</span>
                   </div>
                 </div>
               ))}
@@ -352,24 +348,26 @@ function Admin() {
                     {category.additions.map((addition) => (
                       <p className="content item" key={addition.name}>
                         {addition.name} R${addition.price.toFixed(2)}
-                        <FaEdit
-                          className="icon-action"
-                          size={"1.2rem"}
-                          onClick={() => {
-                            setSelectedCategory(category);
-                            _openModal(
-                              { ...addition, originalName: addition.name },
-                              "addition"
-                            );
-                          }}
-                        />
-                        <FaTrash
-                          className="icon-action"
-                          size={"1.2rem"}
-                          onClick={() =>
-                            _handleDeleteAddition(addition.name, category)
-                          }
-                        />
+                        <Actions size={"1.5rem"}>
+                          <FaEdit
+                            className="icon-action"
+                            size={"1.5rem"}
+                            onClick={() => {
+                              setSelectedCategory(category);
+                              _openModal(
+                                { ...addition, originalName: addition.name },
+                                "addition"
+                              );
+                            }}
+                          />
+                          <FaTrash
+                            className="icon-action"
+                            size={"1.5rem"}
+                            onClick={() =>
+                              _handleDeleteAddition(addition.name, category)
+                            }
+                          />
+                        </Actions>
                       </p>
                     ))}
                   </div>
@@ -409,13 +407,10 @@ function Admin() {
                   <label htmlFor="item_price" className="subtitle">
                     Preço
                   </label>
-                  <input
-                    id="item_price"
-                    type="number"
-                    step="0.01"
-                    value={form.price || ""}
-                    onChange={(e) =>
-                      setForm({ ...form, price: e.target.value })
+                  <PriceInput
+                    value={parseFloat(form.price) || 0}
+                    onChange={(val) =>
+                      setForm({ ...form, price: parseFloat(val) })
                     }
                   />
                   <label htmlFor="item_ingredients" className="subtitle">
@@ -452,13 +447,10 @@ function Admin() {
                   <label htmlFor="item_price" className="subtitle">
                     Preço
                   </label>
-                  <input
-                    id="item_price"
-                    type="number"
-                    step="0.01"
-                    value={form.price || ""}
-                    onChange={(e) =>
-                      setForm({ ...form, price: e.target.value })
+                  <PriceInput
+                    value={parseFloat(form.price)}
+                    onChange={(val) =>
+                      setForm({ ...form, price: parseFloat(val) })
                     }
                   />
                   <button>Salvar</button>
