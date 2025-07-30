@@ -22,7 +22,7 @@ function Admin() {
   const defaultItem = {
     name: "",
     price: 0.0,
-    ingredients: "",
+    ingredients: [],
   };
 
   const _openModal = (form, type) => {
@@ -77,6 +77,39 @@ function Admin() {
     setSelectedCategory(null);
   };
 
+  const _handleDeleteAddition = async (name, category) => {
+    try {
+      const updatedCategory = {
+        ...category,
+        additions: category.additions.filter((a) => a.name !== name),
+      };
+
+      const response = await axios.put(`${api}/menu`, updatedCategory, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const updated = response.data.category;
+
+      setCategories((prev) =>
+        prev.map((cat) => (cat.id === updated.id ? updated : cat))
+      );
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        localStorage.removeItem("authToken");
+        window.location.href = "/auth";
+      } else {
+        console.error(
+          "Erro ao deletar adição:",
+          error.response?.data || error.message
+        );
+      }
+    }
+    setSelectedCategory(null);
+  };
+
   const _handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -85,10 +118,12 @@ function Admin() {
         let updatedCategory = { ...selectedCategory };
 
         if (type === "item") {
-          const ingredients = form.ingredients
-            .split(",")
-            .map((ing) => ing.trim())
-            .filter(Boolean);
+          const ingredients = Array.isArray(form.ingredients)
+            ? form.ingredients
+            : form.ingredients
+                .split(",")
+                .map((ing) => ing.trim())
+                .filter(Boolean);
 
           const itemData = {
             ...form,
@@ -103,6 +138,26 @@ function Admin() {
             updatedCategory.items = [
               ...(updatedCategory.items || []),
               { ...itemData, status: "new" },
+            ];
+          }
+        } else if (type === "addition") {
+          const additionData = {
+            name: form.name,
+            price: parseFloat(form.price),
+          };
+
+          const exists = updatedCategory.additions.find(
+            (add) => add.name === form.originalName
+          );
+
+          if (exists) {
+            updatedCategory.additions = updatedCategory.additions.map((add) =>
+              add.name === form.originalName ? additionData : add
+            );
+          } else {
+            updatedCategory.additions = [
+              ...(updatedCategory.additions || []),
+              additionData,
             ];
           }
         }
@@ -122,22 +177,39 @@ function Admin() {
           )
         );
       } else {
-        let newCategory = form;
+        if (form.id) {
+          const response = await axios.put(`${api}/menu`, form, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
 
-        const response = await axios.post(`${api}/menu`, form, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+          const updatedCategory = response.data.category;
 
-        newCategory = {
-          ...form,
-          id: response.data.categoryId,
-          items: [],
-        };
+          setCategories((prev) =>
+            prev.map((category) =>
+              category.id === updatedCategory.id ? updatedCategory : category
+            )
+          );
+        } else {
+          let newCategory = form;
 
-        setCategories((prev) => [...prev, newCategory]);
+          const response = await axios.post(`${api}/menu`, form, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          newCategory = {
+            ...form,
+            id: response.data.categoryId,
+            items: [],
+          };
+
+          setCategories((prev) => [...prev, newCategory]);
+        }
       }
       setSelectedCategory(null);
       setOpenModal(false);
@@ -170,6 +242,8 @@ function Admin() {
     }
   }, [token]);
 
+  console.log(form);
+
   return (
     <div className="page" id="admin">
       <Header></Header>
@@ -187,8 +261,18 @@ function Admin() {
               <h2 className="title action">
                 {category.name}
                 <Actions>
-                  <FaEdit size={"2rem"} />
-                  <FaCopy size={"2rem"} />
+                  <FaEdit
+                    size={"2rem"}
+                    onClick={() => _openModal(category, "category")}
+                  />
+                  <FaCopy
+                    size={"2rem"}
+                    onClick={() => {
+                      const copiedCategory = { ...category };
+                      delete copiedCategory.id;
+                      _openModal(copiedCategory, "category");
+                    }}
+                  />
                   <FaTrash
                     size={"2rem"}
                     onClick={() => _handleDelete(category.id)}
@@ -210,7 +294,7 @@ function Admin() {
                   <div className="card-content">
                     <h3 className="subtitle">{item.name} </h3>
                     <div className="list">
-                      {item.ingredients &&
+                      {Array.isArray(item.ingredients) &&
                         item.ingredients.map((ingredient, index) => (
                           <span
                             className="content item"
@@ -223,8 +307,22 @@ function Admin() {
                   </div>
                   <div className="card-actions">
                     <Actions>
-                      <FaEdit size={"2rem"} />
-                      <FaCopy size={"2rem"} />
+                      <FaEdit
+                        size={"2rem"}
+                        onClick={() => {
+                          setSelectedCategory(category);
+                          _openModal(item, "item");
+                        }}
+                      />
+                      <FaCopy
+                        size={"2rem"}
+                        onClick={() => {
+                          const copiedItem = { ...item };
+                          delete copiedItem.id;
+                          setSelectedCategory(category);
+                          _openModal(copiedItem, "item");
+                        }}
+                      />
                       <FaTrash
                         size={"2rem"}
                         onClick={() => {
@@ -239,14 +337,39 @@ function Admin() {
                 </div>
               ))}
               <span className="subtitle action">
-                Adições <FaCirclePlus size={"1.5rem"} />
+                Adições{" "}
+                <FaCirclePlus
+                  size={"1.5rem"}
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    _openModal(defaultAddition, "addition");
+                  }}
+                />
               </span>
-              {category.additions.length > 0 && (
+              {category.additions?.length > 0 && (
                 <div className="card">
                   <div className="card-content list">
                     {category.additions.map((addition) => (
                       <p className="content item" key={addition.name}>
                         {addition.name} R${addition.price.toFixed(2)}
+                        <FaEdit
+                          className="icon-action"
+                          size={"1.2rem"}
+                          onClick={() => {
+                            setSelectedCategory(category);
+                            _openModal(
+                              { ...addition, originalName: addition.name },
+                              "addition"
+                            );
+                          }}
+                        />
+                        <FaTrash
+                          className="icon-action"
+                          size={"1.2rem"}
+                          onClick={() =>
+                            _handleDeleteAddition(addition.name, category)
+                          }
+                        />
                       </p>
                     ))}
                   </div>
@@ -266,6 +389,7 @@ function Admin() {
                   </label>
                   <input
                     id="category_name"
+                    value={form.name || ""}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                   />
                   <button>Salvar</button>
@@ -279,6 +403,7 @@ function Admin() {
                   </label>
                   <input
                     id="item_name"
+                    value={form.name || ""}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                   />
                   <label htmlFor="item_price" className="subtitle">
@@ -288,6 +413,7 @@ function Admin() {
                     id="item_price"
                     type="number"
                     step="0.01"
+                    value={form.price || ""}
                     onChange={(e) =>
                       setForm({ ...form, price: e.target.value })
                     }
@@ -300,10 +426,41 @@ function Admin() {
                     rows="4"
                     cols="50"
                     placeholder="Escreva os ingredients separados por vírgula aqui..."
+                    value={
+                      Array.isArray(form.ingredients)
+                        ? form.ingredients.join(", ")
+                        : form.ingredients || ""
+                    }
                     onChange={(e) =>
                       setForm({ ...form, ingredients: e.target.value })
                     }
                   ></textarea>
+                  <button>Salvar</button>
+                </form>
+              );
+            case "addition":
+              return (
+                <form onSubmit={(e) => _handleSubmit(e)}>
+                  <label htmlFor="item_name" className="subtitle">
+                    Qual a adição
+                  </label>
+                  <input
+                    id="item_name"
+                    value={form.name || ""}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
+                  <label htmlFor="item_price" className="subtitle">
+                    Preço
+                  </label>
+                  <input
+                    id="item_price"
+                    type="number"
+                    step="0.01"
+                    value={form.price || ""}
+                    onChange={(e) =>
+                      setForm({ ...form, price: e.target.value })
+                    }
+                  />
                   <button>Salvar</button>
                 </form>
               );
