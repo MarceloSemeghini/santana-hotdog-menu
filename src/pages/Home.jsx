@@ -1,18 +1,39 @@
 import { useEffect, useState } from "react";
 import Header from "../components/header";
-import api from "../config";
+import api, { formatString } from "../utils";
 import Floater from "../components/floater";
 import { IoIosArrowForward } from "react-icons/io";
 
 function Home({ cart, setCart, loading }) {
   const [categories, setCategories] = useState([]);
   const [selectedItem, setSelectedItem] = useState({});
+  const [status, setStatus] = useState([]);
 
   useEffect(() => {
     try {
       loading(true);
       api.get("/menu").then((response) => {
         setCategories(response.data.data);
+      });
+    } catch (error) {
+      console.error("Erro ao enviar:", error);
+      alert(error.response?.data?.message || "Erro ao fazer buscar o cardápio");
+    } finally {
+      loading(false);
+    }
+
+    try {
+      loading(true);
+      api.get("/work_status").then((response) => {
+        const usersStatus = response.data.data;
+
+        if (usersStatus.includes("paused")) {
+          setStatus("paused");
+        } else if (usersStatus.includes("active")) {
+          setStatus("active");
+        } else {
+          setStatus("inactive");
+        }
       });
     } catch (error) {
       console.error("Erro ao enviar:", error);
@@ -33,6 +54,7 @@ function Home({ cart, setCart, loading }) {
     <div className="page" id="home">
       <Header></Header>
       <div className="container">
+        {status}
         {categories &&
           categories.map(
             (category) =>
@@ -50,17 +72,7 @@ function Home({ cart, setCart, loading }) {
                         <h3 className="subtitle">{item.name}</h3>
                         {item.ingredients && (
                           <span className="content">
-                            {item.ingredients.map((ingredient, index) =>
-                              index === 0
-                                ? ingredient.charAt(0).toUpperCase() +
-                                  ingredient.slice(1) +
-                                  ", "
-                                : item.ingredients.length === index + 2
-                                ? `${ingredient} e `
-                                : item.ingredients.length === index + 1
-                                ? ` ${ingredient}.`
-                                : `${ingredient}, `
-                            )}
+                            {formatString(item.ingredients)}
                           </span>
                         )}
                       </div>

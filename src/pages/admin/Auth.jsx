@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Header from "../../components/header";
-import api from "../../config";
+import api from "../../utils";
 import PasswordInput from "../../components/passwordInput";
 
 function Auth({ loading }) {
@@ -13,8 +13,8 @@ function Auth({ loading }) {
 
   const _HandleSubmit = async (e) => {
     e.preventDefault();
-    loading(true);
     try {
+      loading(true);
       const response = await api.post("/auth", {
         email: user.email,
         password: user.password,
@@ -32,8 +32,9 @@ function Auth({ loading }) {
     } catch (error) {
       console.error("Erro ao enviar:", error);
       alert(error.response?.data?.message || "Erro ao fazer login");
+    } finally {
+      loading(false);
     }
-    loading(false);
   };
 
   return (

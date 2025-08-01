@@ -1,6 +1,7 @@
 import { IoMdCloseCircle } from "react-icons/io";
 import Header from "../components/header";
 import { useEffect } from "react";
+import api, { formatString } from "../utils";
 
 function Checkout({ cart, setCart, loading }) {
   const removeFromCart = (indexToRemove) => {
@@ -10,6 +11,12 @@ function Checkout({ cart, setCart, loading }) {
     localStorage.setItem("cart", JSON.stringify(updatedCart));
     loading(false);
   };
+
+  const _finalize = async () => {
+    api.post("/orders", {name: "Marcelo", order: []}).then((response) =>
+      console.log(response)
+    )
+  }
 
   useEffect(() => {
     if (cart.length === 0) {
@@ -28,33 +35,15 @@ function Checkout({ cart, setCart, loading }) {
             <div className="card">
               <div className="card-content">
                 <h3 className="subtitle">{item.name}</h3>
-                <span className="content">
-                  {item.ingredients.map((ingredient, index) =>
-                    index === 0
-                      ? ingredient.charAt(0).toUpperCase() +
-                        ingredient.slice(1) +
-                        ", "
-                      : item.ingredients.length === index + 2
-                      ? `${ingredient} e `
-                      : item.ingredients.length === index + 1
-                      ? ` ${ingredient}.`
-                      : `${ingredient}, `
-                  )}
-                </span>
-                {item.extra && (
+                {item.ingredients.length > 0 && (
+                  <span className="content">
+                    {formatString(item.ingredients)}
+                  </span>
+                )}
+                {item.extra && item.extra.length > 0 && (
                   <span className="content">
                     <b>Extra: </b>
-                    {item.extra.map((addition, index) =>
-                      index === 0
-                        ? addition.name.charAt(0).toUpperCase() +
-                          addition.name.slice(1) +
-                          ", "
-                        : item.extra.length === index + 2
-                        ? `${addition.name} e `
-                        : item.extra.length === index + 1
-                        ? ` ${addition.name}.`
-                        : `${addition.name}, `
-                    )}
+                    {formatString(item.extra, (item) => item.name)}
                   </span>
                 )}
               </div>
@@ -108,7 +97,7 @@ function Checkout({ cart, setCart, loading }) {
             )
             .toFixed(2)}
         </span>
-        <button>Finalizar</button>
+        <button onClick={() => _finalize()}>Finalizar</button>
       </div>
     </div>
   );

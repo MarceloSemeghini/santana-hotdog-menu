@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Header from "../../components/header";
-import api from "../../config";
+import api from "../../utils";
 import Orders from "./tabs/orders";
 import MenuControl from "./tabs/menuControl";
 import Customize from "./tabs/customize";
@@ -19,16 +19,18 @@ function Admin({ loading }) {
   const [status, setStatus] = useState(false);
 
   useEffect(() => {
+    loading(true);
     if (user.userId) {
       api.get(`/work_status?id=${user.userId}`).then((response) => {
         setStatus(response.data.data);
       });
+      loading(false);
     }
   }, [user]);
 
   const switchStatus = async (status) => {
-    loading(true);
     try {
+      loading(true);
       const response = await api.put(
         "/work_status",
         { id: user.userId, status: status },
@@ -42,8 +44,9 @@ function Admin({ loading }) {
       setStatus(response.data.data);
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
+    } finally {
+      loading(false);
     }
-    loading(false);
   };
 
   useEffect(() => {
@@ -52,6 +55,7 @@ function Admin({ loading }) {
         window.location.href = "/auth";
       } else {
         try {
+          loading(true);
           const response = await api.post(
             "/verify_token.php",
             {},
@@ -64,6 +68,7 @@ function Admin({ loading }) {
           );
           if (!response.data.valid) {
             localStorage.removeItem("authToken");
+            loading(false);
             window.location.href = "/auth";
           } else {
             setUser(response.data.user);
@@ -71,7 +76,10 @@ function Admin({ loading }) {
         } catch (error) {
           console.error("Erro ao verificar token:", error);
           localStorage.removeItem("authToken");
+          loading(false);
           window.location.href = "/auth";
+        } finally {
+          loading(false);
         }
       }
     };
@@ -103,14 +111,14 @@ function Admin({ loading }) {
         />
       </Header>
       {activeTab === "orders" && (
-        <Orders token={token} user={{ ...user, status: status }} loading={loading}/>
+        <Orders
+          token={token}
+          user={{ ...user, status: status }}
+          loading={loading}
+        />
       )}
-      {activeTab === "menu" && (
-        <MenuControl token={token} loading={loading} />
-      )}
-      {activeTab === "graph" && (
-        <Graph token={token} loading={loading} />
-      )}
+      {activeTab === "menu" && <MenuControl token={token} loading={loading} />}
+      {activeTab === "graph" && <Graph token={token} loading={loading} />}
       {activeTab === "customize" && (
         <Customize token={token} loading={loading} />
       )}

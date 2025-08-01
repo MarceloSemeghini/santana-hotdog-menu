@@ -1,8 +1,6 @@
 function Loader({ loading }) {
-  if (!loading) return null;
-
   return (
-    <div className="global-loader">
+    <div className={`global-loader ${loading ? "loading" : ""}`}>
       <div className="spinner" />
     </div>
   );

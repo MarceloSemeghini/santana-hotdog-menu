@@ -28,6 +28,13 @@ if ($conn->connect_error) {
 
 $conn->set_charset("utf8mb4");
 
+function generate_id()
+{
+    $unique_id = uniqid(mt_rand(), true);
+    $hex_id = md5($unique_id);
+    return $hex_id;
+}
+
 function authenticate()
 {
     global $key;

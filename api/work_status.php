@@ -19,7 +19,6 @@ switch ($method) {
         exit;
 }
 
-// Atualiza o status ativo/inativo do usuário autenticado
 function handleUpdate()
 {
     global $conn;

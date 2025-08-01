@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaCirclePlus, FaCopy, FaTrash } from "react-icons/fa6";
 import { FaEdit } from "react-icons/fa";
-import api from "../../../config";
+import api from "../../../utils";
 import Actions from "../../../components/actions";
 import Modal from "../../../components/modal";
 import PriceInput from "../../../components/priceInput";
@@ -73,9 +73,10 @@ function MenuControl({ token, loading }) {
           error.response?.data || error.message
         );
       }
+    } finally {
+      setSelectedCategory(null);
+      loading(false);
     }
-    setSelectedCategory(null);
-    loading(false);
   };
 
   const _handleDeleteAddition = async (name, category) => {
@@ -115,8 +116,8 @@ function MenuControl({ token, loading }) {
 
   const _handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
+      loading(true);
       if (selectedCategory) {
         let updatedCategory = { ...selectedCategory };
 
@@ -214,12 +215,10 @@ function MenuControl({ token, loading }) {
           setCategories((prev) => [...prev, newCategory]);
         }
       }
-      setSelectedCategory(null);
-      setOpenModal(false);
-      setForm({});
     } catch (error) {
       if (error.response?.status === 401) {
         localStorage.removeItem("authToken");
+        loading(false);
         window.location.href = "/auth";
       } else {
         console.error(
@@ -227,18 +226,26 @@ function MenuControl({ token, loading }) {
           error.response?.data || error.message
         );
       }
+    } finally {
+      setSelectedCategory(null);
+      setOpenModal(false);
+      setForm({});
+      loading(false);
     }
   };
 
   useEffect(() => {
     if (token) {
       try {
+        loading(true);
         api.get("/menu").then((response) => {
           setCategories(response.data.data);
         });
       } catch (error) {
         console.error("Erro ao enviar:", error);
-        alert(error.response?.data?.message || "Erro ao fazer login");
+        alert(error.response?.data?.message || "Erro ao buscar o cardápio");
+      } finally {
+        loading(false);
       }
     } else {
       window.location.href = "/auth";
