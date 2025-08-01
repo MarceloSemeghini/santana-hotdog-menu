@@ -86,6 +86,8 @@ function handleDelete()
         exit;
     }
 
+    $conn->begin_transaction();
+
     $checkStmt = $conn->prepare("SELECT id FROM categories WHERE id = ?");
     $checkStmt->bind_param("i", $id);
     $checkStmt->execute();
@@ -94,6 +96,7 @@ function handleDelete()
     if ($checkStmt->num_rows === 0) {
         http_response_code(404);
         echo json_encode(["status" => "fail", "message" => "Categoria não encontrada"]);
+        $conn->rollback();
         $checkStmt->close();
         exit;
     }
@@ -109,9 +112,11 @@ function handleDelete()
         ]);
     } else {
         http_response_code(500);
+        $conn->rollback();
         echo json_encode(["status" => "fail", "message" => "Erro ao deletar a categoria"]);
     }
 
+    $conn->commit();
     $stmt->close();
 }
 

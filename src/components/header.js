@@ -4,7 +4,7 @@ function Header({children}) {
         <figure className="logo" onClick={() => window.location.href = "/"}>
           <h1 className="brand-name">SANTANA HOT DOG</h1>
         </figure>
-        <div id="header-content">{children}</div>
+        <div className="header-content">{children}</div>
       </header>
     );
   }

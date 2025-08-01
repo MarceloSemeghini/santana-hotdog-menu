@@ -19,7 +19,7 @@ function Actions({ children, size }) {
   }, []);
 
   return (
-    <div id="actions" ref={wrapperRef}>
+    <div id="actions" ref={wrapperRef} style={{width: size}}>
       {active ? (
         <div className="actions">{children}</div>
       ) : (

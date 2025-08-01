@@ -4,24 +4,23 @@ import api from "../config";
 import Floater from "../components/floater";
 import { IoIosArrowForward } from "react-icons/io";
 
-function Home() {
+function Home({ cart, setCart, loading }) {
   const [categories, setCategories] = useState([]);
   const [selectedItem, setSelectedItem] = useState({});
-  const [cart, setCart] = useState(() => {
-    const storedCart = localStorage.getItem("cart");
-    return storedCart ? JSON.parse(storedCart) : [];
-  });
 
   useEffect(() => {
     try {
+      loading(true);
       api.get("/menu").then((response) => {
         setCategories(response.data.data);
       });
     } catch (error) {
       console.error("Erro ao enviar:", error);
-      alert(error.response?.data?.message || "Erro ao fazer login");
+      alert(error.response?.data?.message || "Erro ao fazer buscar o cardápio");
+    } finally {
+      loading(false);
     }
-  }, []);
+  }, [loading]);
 
   const addToCart = (item) => {
     const updatedCart = [...cart, item];
@@ -143,7 +142,7 @@ function Home() {
                         </div>
                       ) : (
                         <div className="card-actions">
-                          <span className="price">{item.price}</span>
+                          <span className="price">R${item.price}</span>
                           <button
                             onClick={() =>
                               category.additions.length > 0
@@ -175,7 +174,7 @@ function Home() {
             )
             .toFixed(2)}
         </span>
-        <button>
+        <button onClick={() => (window.location.href = "/checkout")}>
           Finalizar <IoIosArrowForward size={"1rem"} />
         </button>
       </Floater>

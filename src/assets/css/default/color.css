@@ -1,14 +1,18 @@
 :root {
-    --clear: #fff9f3;
-    --clear-dark: #b1b1b1;
+  --clear: #ffffff;
+  --gray: #b1b1b1;
 
-    --font-primary: #7a5233;
-    --font-secondary: #4a2f1b;
+  --font-primary: #7a5233;
+  --font-secondary: #4a2f1b;
 
-    --primary: #ff6d1f;
-    --primary-dark: #e34f1e;
+  --primary: #ff6d1f;
+  --primary-dark: #e34f1e;
 
-    --secondary: #fff4df;
-    --secondary-dark: #fbc938;
-    --secondary-light: #ffffff;
+  --secondary: #fff4df;
+  --secondary-dark: #fbc938;
+  --secondary-light: #fff9f3;
+
+  --success: #70b77e;
+  --attention: #f6c65b;
+  --alert: #d9665a;
 }

@@ -2,7 +2,6 @@
   position: relative;
   display: flex;
   justify-content: center;
-  width: 2rem;
   aspect-ratio: 1;
 
   .actions-icon {
@@ -23,7 +22,7 @@
     justify-content: center;
     align-items: center;
     gap: 1rem;
-    background-color: var(--secondary-light);
+    background-color: var(--clear);
     border: 2px solid var(--secondary);
     padding: 1rem;
     border-radius: 0.5rem;

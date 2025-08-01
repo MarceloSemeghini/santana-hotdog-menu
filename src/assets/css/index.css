@@ -4,11 +4,14 @@
 @import "./default/text.css";
 
 @import "./pages/admin.css";
+@import "./pages/auth.css";
+@import "./pages/checkout.css";
 @import "./pages/home.css";
 
 @import "./components/actions.css";
 @import "./components/floater.css";
 @import "./components/header.css";
+@import "./components/loader.css";
 @import "./components/modal.css";
 
 * {
@@ -23,5 +26,5 @@
 body {
   min-height: 100vh;
 
-  background-color: var(--clear);
+  background-color: var(--secondary-light);
 }

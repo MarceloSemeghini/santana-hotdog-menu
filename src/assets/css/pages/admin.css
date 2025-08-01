@@ -25,7 +25,19 @@
     }
   }
 
-  svg {
-    color: var(--primary);
+  .status {
+    border: 4px solid var(--font-secondary);
+    border-radius: 100%;
+    background: var(--font-secondary);
+
+    &.active {
+      color: var(--success);
+    }
+    &.paused {
+      color: var(--attention);
+    }
+    &.inactive {
+      color: var(--alert);
+    }
   }
 }

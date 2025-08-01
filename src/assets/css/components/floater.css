@@ -19,4 +19,20 @@
   &.hidden {
     transform: translateY(100%); /* Esconde o footer */
   }
+
+  &.control {
+    button {
+      background: transparent;
+      border: none;
+      padding: 0;
+      svg {
+        color: var(--primary);
+      }
+      &.pressed {
+        svg {
+          color: var(--gray);
+        }
+      }
+    }
+  }
 }

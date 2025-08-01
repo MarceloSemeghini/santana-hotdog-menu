@@ -1,0 +1,28 @@
+#checkout {
+  background-color: var(--secondary);
+
+  .card {
+    background-color: var(--secondary-light);
+    border-color: var(--secondary-dark);
+    border-radius: 0.5rem;
+  }
+
+  input,
+  textarea {
+    background-color: var(--clear);
+  }
+}
+.action-row {
+  background-color: var(--secondary-light);
+  box-shadow: 0px 0px 5px var(--secondary-dark);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+
+  button {
+    font-size: 20px;
+    border-radius: 0.5rem;
+  }
+}

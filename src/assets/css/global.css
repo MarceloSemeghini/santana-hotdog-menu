@@ -15,7 +15,7 @@ form {
 
 input,
 textarea {
-  background: var(--clear);
+  background: var(--secondary-light);
   border: 2px solid var(--secondary);
   padding: 0.2rem 0.5rem;
 
@@ -29,12 +29,12 @@ textarea {
   }
 
   &::placeholder {
-    color: var(--clear-dark);
+    color: var(--gray);
   }
 }
 
 button {
-  border: none;
+  border: 2px solid var(--primary);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -44,12 +44,31 @@ button {
   width: fit-content;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  color: var(--clear);
+  color: var(--secondary-light);
   font-weight: 800;
   font-size: 16px;
+
+  &.invert {
+    background-color: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+  }
+
+  svg {
+    color: var(--secondary-light);
+  }
 }
+
+svg {
+  color: var(--primary);
+  transition: color .3s ease-in-out;
+}
+
 .page {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .container {
@@ -68,7 +87,7 @@ button {
 }
 
 .card {
-  background-color: var(--secondary-light);
+  background-color: var(--clear);
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -83,9 +102,15 @@ button {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    align-items: center;
+    align-items: flex-end;
     align-self: stretch;
-    justify-content: flex-end;
+    justify-content: space-between;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
   }
 
   .extra-content {
@@ -126,6 +151,10 @@ button {
     }
   }
 
+  &.vertical {
+    flex-direction: column;
+  }
+
   &.expand {
     flex-direction: column;
     .card-actions {
@@ -137,5 +166,5 @@ button {
 
 .separator {
   width: 100%;
-  border: 2px dashed var(--secondary);
+  border: 2px dashed var(--clear);
 }

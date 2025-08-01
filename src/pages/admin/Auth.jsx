@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import Header from "../../components/header";
 import api from "../../config";
-import { FaEye, FaEyeSlash } from "react-icons/fa6";
+import PasswordInput from "../../components/passwordInput";
 
-function Auth() {
+function Auth({ loading }) {
   const token = localStorage.getItem("authToken");
   const [user, setUser] = useState({ email: "", password: "" });
-  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     token && (window.location.href = "/admin");
-  }, [token])
+  }, [token]);
 
   const _HandleSubmit = async (e) => {
     e.preventDefault();
+    loading(true);
     try {
       const response = await api.post("/auth", {
         email: user.email,
@@ -24,6 +24,7 @@ function Auth() {
         const token = response.data.token;
 
         localStorage.setItem("authToken", token);
+        loading(false);
         window.location.href = "/admin";
       } else {
         alert(response.data.message || "Falha no login.");
@@ -32,6 +33,7 @@ function Auth() {
       console.error("Erro ao enviar:", error);
       alert(error.response?.data?.message || "Erro ao fazer login");
     }
+    loading(false);
   };
 
   return (
@@ -49,21 +51,9 @@ function Auth() {
           />
 
           <label htmlFor="password">Senha</label>
-          <div style={{ position: "relative" }}>
-            <input
-              type={showPassword ? "text" : "password"}
-              id="password"
-              placeholder="******"
-              onChange={(e) => setUser({ ...user, password: e.target.value })}
-            />
-            <button
-              type="button"
-              className="icon floating"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </button>
-          </div>
+          <PasswordInput
+            onChange={(value) => setUser({ ...user, password: value })}
+          />
 
           <button type="submit">enviar</button>
         </form>
