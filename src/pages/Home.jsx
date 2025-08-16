@@ -6,14 +6,24 @@ import { IoIosArrowForward } from "react-icons/io";
 
 function Home({ cart, setCart, loading }) {
   const [categories, setCategories] = useState([]);
+  const [pageInfo, setPageInfo] = useState({});
   const [selectedItem, setSelectedItem] = useState({});
   const [status, setStatus] = useState([]);
 
   useEffect(() => {
+    if (status === "paused" || status === "inactive" || pageInfo.vacation) {
+      setCart([]);
+      localStorage.setItem("cart", JSON.stringify([]));
+      return;
+    }
+    
     try {
       loading(true);
       api.get("/menu").then((response) => {
-        setCategories(response.data.data);
+        setPageInfo(
+          response.data.data.find((a) => a.name === "info")?.additions || {}
+        );
+        setCategories(response.data.data.filter((a) => a.name !== "info"));
       });
     } catch (error) {
       console.error("Erro ao enviar:", error);
@@ -44,6 +54,9 @@ function Home({ cart, setCart, loading }) {
   }, [loading]);
 
   const addToCart = (item) => {
+    if (status === "paused" || status === "inactive" || pageInfo.vacation)
+      return;
+
     const updatedCart = [...cart, item];
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
@@ -54,7 +67,35 @@ function Home({ cart, setCart, loading }) {
     <div className="page" id="home">
       <Header></Header>
       <div className="container">
-        {status}
+        {pageInfo.vacation ? (
+          <h1>estamos de férias</h1>
+        ) : status === "paused" && pageInfo.pauseWarning ? (
+          <>
+            <div className="card alert">
+              <span className="title paused">{pageInfo.pauseWarning}</span>
+            </div>
+            <span className="separator" />
+          </>
+        ) : status === "inactive" && pageInfo.innactiveWarning ? (
+          <>
+            <div className="card alert">
+              <span className="title inactive">
+                {pageInfo.innactiveWarning}
+              </span>
+              <span>Aguardamos você de:</span>
+              <ul>
+                <li>Segunda {pageInfo.workingHours?.monday}</li>
+                <li>Terça {pageInfo.workingHours?.tuesday}</li>
+                <li>Quarta {pageInfo.workingHours?.wednesday}</li>
+                <li>Quinta {pageInfo.workingHours?.thursday}</li>
+                <li>Sexta {pageInfo.workingHours?.friday}</li>
+                <li>Sábado {pageInfo.workingHours?.saturday}</li>
+                <li>Domingo {pageInfo.workingHours?.sunday}</li>
+              </ul>
+            </div>
+            <span className="separator" />
+          </>
+        ) : null}
         {categories &&
           categories.map(
             (category) =>

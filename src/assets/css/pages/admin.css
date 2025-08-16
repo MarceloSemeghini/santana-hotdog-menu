@@ -40,4 +40,19 @@
       color: var(--alert);
     }
   }
+
+  .info {
+    .card-content {
+      gap: 1rem;
+      li {
+        margin: 1rem 0;
+        display: flex;
+        justify-content: space-between;
+
+        input {
+          width: 8rem;
+        }
+      }
+    }
+  }
 }

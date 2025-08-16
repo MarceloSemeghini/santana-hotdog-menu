@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaCirclePlus, FaCopy, FaTrash } from "react-icons/fa6";
-import { FaEdit } from "react-icons/fa";
+import { FaEdit, FaSave } from "react-icons/fa";
 import api from "../../../utils";
 import Actions from "../../../components/actions";
 import Modal from "../../../components/modal";
 import PriceInput from "../../../components/priceInput";
+import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
 
 function MenuControl({ token, loading }) {
+  const fetchedRef = useRef(false);
   const [categories, setCategories] = useState([]);
+  const [pageInfo, setPageInfo] = useState({});
   const [openModal, setOpenModal] = useState(false);
   const [form, setForm] = useState({});
   const [type, setType] = useState("");
@@ -23,10 +26,185 @@ function MenuControl({ token, loading }) {
     ingredients: [],
   };
 
+  useEffect(() => {
+    if (!token || fetchedRef.current) return;
+    fetchedRef.current = true;
+
+    loading(true);
+    api
+      .get("/menu")
+      .then(async (response) => {
+        let info = response.data.data.find((a) => a.name === "info");
+
+        if (!info) {
+          const defaultInfo = {
+            name: "info",
+            additions: {
+              pauseWarning: "",
+              innactiveWarning: "",
+              workingHours: {
+                monday: "",
+                tuesday: "",
+                wednesday: "",
+                thursday: "",
+                friday: "",
+                saturday: "",
+                sunday: "",
+              },
+              vacation: false,
+              vacationWarning: "",
+            },
+          };
+          const responsePost = await api.post("/menu", defaultInfo, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          info = responsePost.data.category ?? {
+            ...defaultInfo,
+            id: responsePost.data.categoryId,
+          };
+        }
+
+        setPageInfo(info);
+        setCategories(response.data.data.filter((a) => a.name !== "info"));
+      })
+      .catch((error) => {
+        console.error("Erro ao buscar:", error);
+        alert(error.response?.data?.message || "Erro ao buscar o cardápio");
+      })
+      .finally(() => {
+        loading(false);
+      });
+  }, [token]);
+
   const _openModal = (form, type) => {
     setOpenModal(true);
     setForm(form);
     setType(type);
+  };
+
+  const _handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      loading(true);
+      if (selectedCategory) {
+        let updatedCategory = { ...selectedCategory };
+
+        if (type === "item") {
+          const ingredients = Array.isArray(form.ingredients)
+            ? form.ingredients
+            : form.ingredients
+                .split(",")
+                .map((ing) => ing.trim())
+                .filter(Boolean);
+
+          const itemData = {
+            ...form,
+            ingredients: ingredients,
+          };
+
+          if (form.id) {
+            updatedCategory.items = updatedCategory.items.map((item) =>
+              item.id === form.id ? itemData : item
+            );
+          } else {
+            updatedCategory.items = [
+              ...(updatedCategory.items || []),
+              { ...itemData, status: "new" },
+            ];
+          }
+        } else if (type === "addition") {
+          const additionData = {
+            name: form.name,
+            price: form.price,
+          };
+
+          const exists = updatedCategory.additions.find(
+            (add) => add.name === form.originalName
+          );
+
+          if (exists) {
+            updatedCategory.additions = updatedCategory.additions.map((add) =>
+              add.name === form.originalName ? additionData : add
+            );
+          } else {
+            updatedCategory.additions = [
+              ...(updatedCategory.additions || []),
+              additionData,
+            ];
+          }
+        }
+
+        const response = await api.put("/menu", updatedCategory, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        updatedCategory = response.data.category;
+
+        setCategories((prev) =>
+          prev.map((category) =>
+            category.id === updatedCategory.id ? updatedCategory : category
+          )
+        );
+      } else {
+        const data = form.name ? form : pageInfo;
+        if (data.id) {
+          const response = await api.put("/menu", data, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          const updatedCategory = response.data.category;
+
+          setCategories((prev) =>
+            prev.map((category) =>
+              category.id === updatedCategory.id ? updatedCategory : category
+            )
+          );
+        } else {
+          let newCategory = form;
+
+          const response = await api.post("/menu", form, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          newCategory = {
+            ...form,
+            id: response.data.categoryId,
+            items: [],
+          };
+
+          setCategories((prev) => [...prev, newCategory]);
+        }
+      }
+    } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.removeItem("authToken");
+        loading(false);
+        window.location.href = "/auth";
+      } else {
+        console.error(
+          "Erro ao enviar categoria:",
+          error.response?.data || error.message
+        );
+      }
+    } finally {
+      setSelectedCategory(null);
+      setOpenModal(false);
+      setForm({});
+      loading(false);
+    }
   };
 
   const _handleDelete = async (id, category = null) => {
@@ -114,144 +292,6 @@ function MenuControl({ token, loading }) {
     loading(false);
   };
 
-  const _handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      loading(true);
-      if (selectedCategory) {
-        let updatedCategory = { ...selectedCategory };
-
-        if (type === "item") {
-          const ingredients = Array.isArray(form.ingredients)
-            ? form.ingredients
-            : form.ingredients
-                .split(",")
-                .map((ing) => ing.trim())
-                .filter(Boolean);
-
-          const itemData = {
-            ...form,
-            ingredients: ingredients,
-          };
-
-          if (form.id) {
-            updatedCategory.items = updatedCategory.items.map((item) =>
-              item.id === form.id ? itemData : item
-            );
-          } else {
-            updatedCategory.items = [
-              ...(updatedCategory.items || []),
-              { ...itemData, status: "new" },
-            ];
-          }
-        } else if (type === "addition") {
-          const additionData = {
-            name: form.name,
-            price: form.price,
-          };
-
-          const exists = updatedCategory.additions.find(
-            (add) => add.name === form.originalName
-          );
-
-          if (exists) {
-            updatedCategory.additions = updatedCategory.additions.map((add) =>
-              add.name === form.originalName ? additionData : add
-            );
-          } else {
-            updatedCategory.additions = [
-              ...(updatedCategory.additions || []),
-              additionData,
-            ];
-          }
-        }
-
-        const response = await api.put("/menu", updatedCategory, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        updatedCategory = response.data.category;
-
-        setCategories((prev) =>
-          prev.map((category) =>
-            category.id === updatedCategory.id ? updatedCategory : category
-          )
-        );
-      } else {
-        if (form.id) {
-          const response = await api.put("/menu", form, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
-
-          const updatedCategory = response.data.category;
-
-          setCategories((prev) =>
-            prev.map((category) =>
-              category.id === updatedCategory.id ? updatedCategory : category
-            )
-          );
-        } else {
-          let newCategory = form;
-
-          const response = await api.post("/menu", form, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
-
-          newCategory = {
-            ...form,
-            id: response.data.categoryId,
-            items: [],
-          };
-
-          setCategories((prev) => [...prev, newCategory]);
-        }
-      }
-    } catch (error) {
-      if (error.response?.status === 401) {
-        localStorage.removeItem("authToken");
-        loading(false);
-        window.location.href = "/auth";
-      } else {
-        console.error(
-          "Erro ao enviar categoria:",
-          error.response?.data || error.message
-        );
-      }
-    } finally {
-      setSelectedCategory(null);
-      setOpenModal(false);
-      setForm({});
-      loading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (token) {
-      try {
-        loading(true);
-        api.get("/menu").then((response) => {
-          setCategories(response.data.data);
-        });
-      } catch (error) {
-        console.error("Erro ao enviar:", error);
-        alert(error.response?.data?.message || "Erro ao buscar o cardápio");
-      } finally {
-        loading(false);
-      }
-    } else {
-      window.location.href = "/auth";
-    }
-  }, [token]);
-
   return (
     <>
       <div className="container">
@@ -262,10 +302,11 @@ function MenuControl({ token, loading }) {
             onClick={() => _openModal(defaultCategory, "category")}
           />
         </b>
+
         {categories &&
           categories.map((category) => (
             <div className="section" key={category.name}>
-              <h2 className="title action">
+              <span className="title action">
                 {category.name}
                 <Actions size={"2.5rem"}>
                   <FaEdit
@@ -285,8 +326,8 @@ function MenuControl({ token, loading }) {
                     onClick={() => _handleDelete(category.id)}
                   />
                 </Actions>
-              </h2>
-              <h2 className="subtitle action">
+              </span>
+              <span className="subtitle action">
                 Itens{" "}
                 <FaCirclePlus
                   size={"1.5rem"}
@@ -295,11 +336,11 @@ function MenuControl({ token, loading }) {
                     _openModal(defaultItem, "item");
                   }}
                 />
-              </h2>
+              </span>
               {category.items.map((item) => (
                 <div className="card" key={item.id}>
                   <div className="card-content">
-                    <h3 className="subtitle">{item.name} </h3>
+                    <span className="subtitle">{item.name} </span>
                     <div className="list">
                       {Array.isArray(item.ingredients) &&
                         item.ingredients.map((ingredient, index) => (
@@ -364,7 +405,10 @@ function MenuControl({ token, loading }) {
                             onClick={() => {
                               setSelectedCategory(category);
                               _openModal(
-                                { ...addition, originalName: addition.name },
+                                {
+                                  ...addition,
+                                  originalName: addition.name,
+                                },
                                 "addition"
                               );
                             }}
@@ -384,6 +428,117 @@ function MenuControl({ token, loading }) {
               )}
             </div>
           ))}
+
+        <span className="separator" />
+
+        <b className="title action">
+          Informações <FaSave size={"2rem"} onClick={(e) => _handleSubmit(e)} />
+        </b>
+        {pageInfo && (
+          <div className="card info">
+            <div className="card-content">
+              <label className="subtitle">Inativo</label>
+              <textarea
+                rows="4"
+                cols="30"
+                placeholder="Escreva aqui a mensagem que irá aparecer quando o os pedidos não estiverem sendo recebidos"
+                value={pageInfo.additions?.innactiveWarning || ""}
+                onChange={(e) =>
+                  setPageInfo({
+                    ...pageInfo,
+                    additions: {
+                      ...pageInfo.additions,
+                      innactiveWarning: e.target.value,
+                    },
+                  })
+                }
+              />
+              <label className="subtitle">Em pausa</label>
+              <textarea
+                rows="4"
+                cols="30"
+                placeholder="Escreva aqui a mensagem que irá aparecer quando o os pedidos estiverem pausados"
+                value={pageInfo.additions?.pauseWarning || ""}
+                onChange={(e) =>
+                  setPageInfo({
+                    ...pageInfo,
+                    additions: {
+                      ...pageInfo.additions,
+                      pauseWarning: e.target.value,
+                    },
+                  })
+                }
+              />
+              <ul>
+                {[
+                  { key: "monday", label: "segunda" },
+                  { key: "tuesday", label: "terça" },
+                  { key: "wednesday", label: "quarta" },
+                  { key: "thursday", label: "quinta" },
+                  { key: "friday", label: "sexta" },
+                  { key: "saturday", label: "sábado" },
+                  { key: "sunday", label: "domingo" },
+                ].map(({ key, label }) => (
+                  <li key={key}>
+                    <label className="subtitle">{label}</label>
+                    <input
+                      value={pageInfo.additions?.workingHours?.[key] || ""}
+                      onChange={(e) =>
+                        setPageInfo((prev) => ({
+                          ...prev,
+                          additions: {
+                            ...prev.additions,
+                            workingHours: {
+                              ...prev.additions.workingHours,
+                              [key]: e.target.value,
+                            },
+                          },
+                        }))
+                      }
+                    />
+                  </li>
+                ))}
+              </ul>
+              <label
+                className="subtitle action"
+                onClick={() =>
+                  setPageInfo((prev) => ({
+                    ...prev,
+                    additions: {
+                      ...prev.additions,
+                      vacation: !prev.additions.vacation,
+                    },
+                  }))
+                }
+              >
+                Férias{" "}
+                <span>
+                  {pageInfo.additions?.vacation ? (
+                    <ImCheckboxChecked />
+                  ) : (
+                    <ImCheckboxUnchecked />
+                  )}{" "}
+                </span>
+              </label>
+              <label className="subtitle">De férias</label>
+              <textarea
+                rows="4"
+                cols="30"
+                placeholder="Escreva aqui a mensagem que irá aparecer quando estiver de férias"
+                value={pageInfo.additions?.vacationWarning || ""}
+                onChange={(e) =>
+                  setPageInfo({
+                    ...pageInfo,
+                    additions: {
+                      ...pageInfo.additions,
+                      vacationWarning: e.target.value,
+                    },
+                  })
+                }
+              />
+            </div>
+          </div>
+        )}
       </div>
       <Modal active={openModal} close={() => setOpenModal(false)}>
         {(() => {
@@ -438,7 +593,7 @@ function MenuControl({ token, loading }) {
                     onChange={(e) =>
                       setForm({ ...form, ingredients: e.target.value })
                     }
-                  ></textarea>
+                  />
                   <button>Salvar</button>
                 </form>
               );

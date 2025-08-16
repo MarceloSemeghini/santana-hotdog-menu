@@ -3,14 +3,12 @@ import Header from "../../components/header";
 import api from "../../utils";
 import Orders from "./tabs/orders";
 import MenuControl from "./tabs/menuControl";
-import Customize from "./tabs/customize";
 import Graph from "./tabs/graph";
 import { PiNewspaperClippingFill } from "react-icons/pi";
 import { MdMenuBook } from "react-icons/md";
 import { TbGraphFilled } from "react-icons/tb";
 import Floater from "../../components/floater";
 import { FaPause, FaPlay, FaStop } from "react-icons/fa6";
-import { BiCustomize } from "react-icons/bi";
 
 function Admin({ loading }) {
   const token = localStorage.getItem("authToken");
@@ -99,11 +97,6 @@ function Admin({ loading }) {
           onClick={() => setActiveTab("menu")}
           className={activeTab === "menu" ? "active" : "inactive"}
         />
-        <BiCustomize
-          size={"2.5rem"}
-          onClick={() => setActiveTab("customize")}
-          className={activeTab === "customize" ? "active" : "inactive"}
-        />
         <TbGraphFilled
           size={"2.5rem"}
           onClick={() => setActiveTab("graph")}
@@ -119,9 +112,6 @@ function Admin({ loading }) {
       )}
       {activeTab === "menu" && <MenuControl token={token} loading={loading} />}
       {activeTab === "graph" && <Graph token={token} loading={loading} />}
-      {activeTab === "customize" && (
-        <Customize token={token} loading={loading} />
-      )}
 
       <Floater className="control">
         <button

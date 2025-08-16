@@ -1,3 +1,35 @@
 #home {
-    
+  .alert {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--font-secondary);
+    .inactive {
+        color: var(--alert);
+    }
+    .paused {
+        color: var(--attention);
+    }
+    span {
+      display: flex;
+      margin: 0.5rem 0;
+      font-weight: 600;
+    }
+    ul {
+      li {
+        margin-top: 0.5rem;
+        font-weight: 500;
+        &:before {
+          content: "";
+          display: inline-block;
+          background-color: var(--font-secondary);
+          height: 0.5rem;
+          aspect-ratio: 1;
+          border-radius: 50%;
+          margin: 0 .5rem;
+        }
+      }
+    }
+  }
 }
