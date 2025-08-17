@@ -1,9 +1,12 @@
 import { IoMdCloseCircle } from "react-icons/io";
 import Header from "../components/header";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import api, { formatString } from "../utils";
 
 function Checkout({ cart, setCart, loading }) {
+  const [form, setForm] = useState({ name: "", order: {products: [], note: ""}});
+  const [order, setOrder] = useState({})
+
   const removeFromCart = (indexToRemove) => {
     loading(true);
     const updatedCart = cart.filter((a, index) => index !== indexToRemove);
@@ -13,8 +16,8 @@ function Checkout({ cart, setCart, loading }) {
   };
 
   const _finalize = async () => {
-    api.post("/orders", {name: "Marcelo", order: []}).then((response) =>
-      console.log(response)
+    api.post("/orders", {name: form.name, order: {products: cart, note: form.order.note}}).then((response) =>
+      setOrder(response.data)
     )
   }
 
@@ -63,7 +66,7 @@ function Checkout({ cart, setCart, loading }) {
         <div className="section">
           <h2 className="title">Nome</h2>
           <div className="card vertical">
-            <input type="text" placeholder="Digite o seu nome" />
+            <input type="text" placeholder="Digite o seu nome" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} />
           </div>
         </div>
         <span className="separator" />
@@ -75,6 +78,8 @@ function Checkout({ cart, setCart, loading }) {
                 rows="4"
                 cols="50"
                 placeholder="Escreva aqui observações que gostaria de deixar ao pedido."
+                value={form.order.note}
+                onChange={(e) => setForm({...form, order: {...form.order, note: e.target.value}})}
               />
             </div>
           </div>

@@ -25,6 +25,16 @@
     }
   }
 
+  .order {
+    width: 100%;
+    .card-content {
+      width: 100%;
+      .separator {
+        border: 2px dashed var(--secondary-light);
+      }
+    }
+  }
+
   .status {
     border: 4px solid var(--font-secondary);
     border-radius: 100%;

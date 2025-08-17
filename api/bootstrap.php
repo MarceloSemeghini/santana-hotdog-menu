@@ -34,6 +34,18 @@ function generate_id()
     $hex_id = md5($unique_id);
     return $hex_id;
 }
+function get_date()
+{
+    date_default_timezone_set('America/Sao_Paulo');
+
+    $hour = (int) date('H');
+
+    if ($hour < 12) {
+        return date('Y-m-d', strtotime('-1 day'));
+    }
+
+    return date('Y-m-d');
+}
 
 function authenticate()
 {

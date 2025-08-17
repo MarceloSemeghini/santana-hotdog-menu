@@ -58,8 +58,16 @@ function handleUpdate()
         exit;
     }
 
-    $stmt = $conn->prepare("UPDATE users SET status = ? WHERE id = ?");
-    $stmt->bind_param("ss", $update, $id);
+    if ($currentData['status'] === "inactive" && $update !== "inactive") {
+        $lastActive = get_date();
+
+        $stmt = $conn->prepare("UPDATE users SET status = ?, last_active = ? WHERE id = ?");
+        $stmt->bind_param("sss", $update, $lastActive, $id);
+    } else {
+        $stmt = $conn->prepare("UPDATE users SET status = ? WHERE id = ?");
+        $stmt->bind_param("ss", $update, $id);
+    }
+
     $stmt->execute();
     $conn->commit();
 
