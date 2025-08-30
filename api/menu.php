@@ -36,47 +36,53 @@ function handlePost()
 
     if (!isset($body['name'])) {
         http_response_code(400);
-        echo json_encode(["status" => "fail", "message" => "Campo obrigatório faltando"]);
+        echo json_encode(["status" => "fail", "message" => "Nome da categoria não informado"]);
         exit;
     }
-
-    $conn->begin_transaction();
 
     $id = generate_id();
     $name = $body['name'];
-    $additions = isset($body['additions']) ? json_encode($body['additions'], JSON_UNESCAPED_UNICODE) : null;
 
-    $checkStmt = $conn->prepare("SELECT id FROM categories WHERE name = ?");
-    $checkStmt->bind_param("s", $name);
-    $checkStmt->execute();
-    $checkStmt->store_result();
+    $verifyStmt = $conn->prepare("SELECT id FROM categories WHERE name = ?");
+    $verifyStmt->bind_param("s", $name);
+    $verifyStmt->execute();
+    $verifyStmt->store_result();
 
-    if ($checkStmt->num_rows > 0) {
+    if ($verifyStmt->num_rows > 0) {
         http_response_code(409);
         echo json_encode(["status" => "fail", "message" => "Categoria com este nome já existe"]);
-        $conn->rollback();
-        $checkStmt->close();
+        $verifyStmt->close();
         exit;
     }
-    $checkStmt->close();
+    $verifyStmt->close();
 
-    $stmt = $conn->prepare("INSERT INTO categories (id, name, additions) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $id, $name, $additions);
+    $conn->begin_transaction();
 
-    if ($stmt->execute()) {
-        $conn->commit();
-        echo json_encode([
-            "status" => "success",
-            "message" => "Categoria inserida com sucesso",
-            "categoryId" => $id
-        ]);
-    } else {
-        http_response_code(500);
+    try {
+        $stmt = $conn->prepare("INSERT INTO categories (id, name) VALUES (?, ?)");
+        $stmt->bind_param("ss", $id, $name);
+
+        if ($stmt->execute()) {
+            $conn->commit();
+            echo json_encode([
+                "status" => "success",
+                "message" => "Categoria inserida com sucesso",
+                "categoryId" => $id
+            ]);
+        } else {
+            $conn->rollback();
+            http_response_code(500);
+            echo json_encode(["status" => "fail", "message" => "Erro ao inserir no banco"]);
+            $stmt->close();
+            exit;
+        }
+
+        $stmt->close();
+    } catch (Exception $e) {
         $conn->rollback();
-        echo json_encode(["status" => "fail", "message" => "Erro ao inserir no banco"]);
+        http_response_code(500);
+        echo json_encode(["status" => "fail", "message" => $e->getMessage()]);
     }
-
-    $stmt->close();
 }
 
 function handleDelete()
@@ -89,50 +95,57 @@ function handleDelete()
 
     if (!$id) {
         http_response_code(400);
-        echo json_encode(["status" => "fail", "message" => "ID inválido"]);
+        echo json_encode(["status" => "fail", "message" => "ID da categoria não informado"]);
         exit;
     }
 
+    $verifyStmt = $conn->prepare("SELECT id FROM categories WHERE id = ?");
+    $verifyStmt->bind_param("s", $id);
+    $verifyStmt->execute();
+    $verifyStmt->store_result();
+
+    if ($verifyStmt->num_rows === 0) {
+        http_response_code(404);
+        echo json_encode(["status" => "fail", "message" => "Categoria não encontrada"]);
+        $verifyStmt->close();
+        exit;
+    }
+    $verifyStmt->close();
+
+    $conn->begin_transaction();
+
     try {
-        $conn->begin_transaction();
-
-        $checkStmt = $conn->prepare("SELECT id FROM categories WHERE id = ?");
-        if (!$checkStmt)
-            throw new Exception("Erro ao preparar verificação");
-        $checkStmt->bind_param("s", $id);
-        $checkStmt->execute();
-        $checkStmt->store_result();
-
-        if ($checkStmt->num_rows === 0) {
-            http_response_code(404);
-            $checkStmt->close();
-            throw new Exception("Categoria não encontrada");
+        $stmtItems = $conn->prepare("DELETE FROM items WHERE category_id = ?");
+        $stmtItems->bind_param("s", $id);
+        if (!$stmtItems->execute()) {
+            $conn->rollback();
+            http_response_code(500);
+            echo json_encode(["status" => "fail", "message" => "Erro ao deletar itens da categoria"]);
         }
-        $checkStmt->close();
+        $stmtItems->close();
 
         $stmt = $conn->prepare("DELETE FROM categories WHERE id = ?");
-        if (!$stmt)
-            throw new Exception("Erro ao preparar exclusão");
         $stmt->bind_param("s", $id);
 
         if (!$stmt->execute()) {
-            throw new Exception("Erro ao deletar a categoria");
+            $conn->rollback();
+            http_response_code(500);
+            echo json_encode(["status" => "fail", "message" => "Erro ao deletar categoria"]);
         }
 
         $stmt->close();
+
         $conn->commit();
 
         echo json_encode([
             "status" => "success",
-            "message" => "Categoria deletada com sucesso"
+            "message" => "Categoria e itens deletados com sucesso",
+            "categoryId" => $id
         ]);
     } catch (Exception $e) {
         $conn->rollback();
         http_response_code(500);
-        echo json_encode([
-            "status" => "fail",
-            "message" => $e->getMessage()
-        ]);
+        echo json_encode(["status" => "fail", "message" => $e->getMessage()]);
     }
 }
 
@@ -190,7 +203,6 @@ function handleUpdate()
         !$data ||
         !isset($data['id']) ||
         !isset($data['name']) ||
-        !is_array($data['additions']) ||
         !is_array($data['items'])
     ) {
         http_response_code(400);
@@ -202,7 +214,7 @@ function handleUpdate()
 
     try {
         $stmt = $conn->prepare("UPDATE categories SET name = ?, additions = ? WHERE id = ?");
-        $additionsJson = json_encode($data['additions']);
+        $additionsJson = json_encode($data['additions']) ?? null;
         $stmt->bind_param("sss", $data['name'], $additionsJson, $data['id']);
         $stmt->execute();
         $stmt->close();

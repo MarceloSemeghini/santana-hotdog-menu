@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SiTorbrowser } from "react-icons/si";
 import api from "../../../utils";
 import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
@@ -13,11 +13,9 @@ function Orders({ token, user, loading }) {
 
   const [orders, setOrders] = useState([]);
 
+  const intervalRef = useRef(null);
   useEffect(() => {
     if (!token) return;
-
-    let isMounted = true;
-
     const fetchOrders = async () => {
       try {
         loading(true);
@@ -31,50 +29,46 @@ function Orders({ token, user, loading }) {
 
         const ordersData = response.data?.data || [];
 
-        if (isMounted) {
-          setOrders((prevOrders) => {
-            return ordersData.map((newOrder) => {
-              const existingOrder = prevOrders.find(
-                (p) => p.id === newOrder.id
-              );
+        setOrders((prevOrders) => {
+          return ordersData.map((newOrder) => {
+            const existingOrder = prevOrders.find((p) => p.id === newOrder.id);
 
-              if (existingOrder) {
-                return {
-                  ...existingOrder,
-                  ...newOrder,
-                  items: {
-                    ...newOrder.items,
-                    products:
-                      newOrder.items?.products?.map((p) => {
-                        const existingProduct =
-                          existingOrder.items?.products?.find(
-                            (ep) => ep.id === p.id
-                          );
-                        return {
-                          ...p,
-                          completed: existingProduct
-                            ? existingProduct.completed
-                            : false,
-                        };
-                      }) || [],
-                  },
-                };
-              } else {
-                return {
-                  ...newOrder,
-                  items: {
-                    ...newOrder.items,
-                    products:
-                      newOrder.items?.products?.map((p) => ({
+            if (existingOrder) {
+              return {
+                ...existingOrder,
+                ...newOrder,
+                items: {
+                  ...newOrder.items,
+                  products:
+                    newOrder.items?.products?.map((p) => {
+                      const existingProduct =
+                        existingOrder.items?.products?.find(
+                          (ep) => ep.id === p.id
+                        );
+                      return {
                         ...p,
-                        completed: false,
-                      })) || [],
-                  },
-                };
-              }
-            });
+                        completed: existingProduct
+                          ? existingProduct.completed
+                          : false,
+                      };
+                    }) || [],
+                },
+              };
+            } else {
+              return {
+                ...newOrder,
+                items: {
+                  ...newOrder.items,
+                  products:
+                    newOrder.items?.products?.map((p) => ({
+                      ...p,
+                      completed: false,
+                    })) || [],
+                },
+              };
+            }
           });
-        }
+        });
       } catch (error) {
         setAlertMessage(
           error.response?.data?.message || "Erro ao buscar pedidos:",
@@ -82,14 +76,16 @@ function Orders({ token, user, loading }) {
         );
       } finally {
         loading(false);
-        if (isMounted) setTimeout(fetchOrders, 5000);
       }
     };
 
     fetchOrders();
+    intervalRef.current = setInterval(fetchOrders, 5000);
 
     return () => {
-      isMounted = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, [token]);
 

@@ -19,7 +19,7 @@ function MenuControl({ token, loading }) {
   const [form, setForm] = useState({});
   const [type, setType] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const defaultCategory = { name: "", additions: [] };
+  const defaultCategory = { name: "" };
   const defaultAddition = {
     name: "",
     price: 0.0,
@@ -199,6 +199,7 @@ function MenuControl({ token, loading }) {
           type: "alert",
         });
       } finally {
+        setSelectedCategory(null);
         loading(false);
       }
     } else {
@@ -234,6 +235,7 @@ function MenuControl({ token, loading }) {
           type: "alert",
         });
       } finally {
+        setSelectedCategory(null);
         loading(false);
       }
     }
@@ -254,7 +256,9 @@ function MenuControl({ token, loading }) {
           },
         });
 
-        setCategories((prev) => prev.filter((category) => category.id !== categoryId));
+        setCategories((prev) =>
+          prev.filter((category) => category.id !== categoryId)
+        );
       } catch (error) {
         setPopupMessage({
           message:
@@ -263,6 +267,7 @@ function MenuControl({ token, loading }) {
           type: "alert",
         });
       } finally {
+        setSelectedCategory(null);
         loading(false);
       }
     }
@@ -300,6 +305,7 @@ function MenuControl({ token, loading }) {
           type: "alert",
         });
       } finally {
+        setSelectedCategory(null);
         loading(false);
       }
     } else if (categoryId && !itemId && additionName) {
@@ -359,7 +365,7 @@ function MenuControl({ token, loading }) {
                   />
                   <FaTrash
                     size={"2rem"}
-                    onClick={() => _handleDelete({categoryId: category.id})}
+                    onClick={() => _handleDelete({ categoryId: category.id })}
                   />
                 </Actions>
               </span>
@@ -410,7 +416,10 @@ function MenuControl({ token, loading }) {
                       <FaTrash
                         size={"1.5rem"}
                         onClick={() => {
-                          _handleDelete({categoryId: category.id, itemId: item.id});
+                          _handleDelete({
+                            categoryId: category.id,
+                            itemId: item.id,
+                          });
                         }}
                       />
                     </Actions>
@@ -456,7 +465,10 @@ function MenuControl({ token, loading }) {
                             className="icon-action"
                             size={"1.5rem"}
                             onClick={() =>
-                              _handleDelete({categoryId: category.id, additionName: addition.name})
+                              _handleDelete({
+                                categoryId: category.id,
+                                additionName: addition.name,
+                              })
                             }
                           />
                         </Actions>
