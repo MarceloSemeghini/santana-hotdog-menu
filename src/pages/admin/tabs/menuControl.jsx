@@ -5,11 +5,11 @@ import api from "../../../utils";
 import Actions from "../../../components/actions";
 import Modal from "../../../components/modal";
 import PriceInput from "../../../components/priceInput";
-import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
 import Popup from "../../../components/popup";
+import InfoManager from "../../../components/infoManager";
 
 function MenuControl({ token, loading }) {
-  const [alertMessage, setAlertMessage] = useState("");
+  const [popupMessage, setPopupMessage] = useState({ message: "", type: "" });
   const [openModal, setOpenModal] = useState(false);
 
   const fetchedRef = useRef(false);
@@ -75,9 +75,10 @@ function MenuControl({ token, loading }) {
         setCategories(response.data.data.filter((a) => a.name !== "info"));
       });
     } catch (error) {
-      setAlertMessage(
-        error.response?.data?.message || "Erro ao buscar o cardápio"
-      );
+      setPopupMessage({
+        message: error.response?.data?.message || "Erro ao buscar os dados",
+        type: "alert",
+      });
     } finally {
       loading(false);
     }
@@ -92,20 +93,22 @@ function MenuControl({ token, loading }) {
   const _handleSubmit = async (e, forceData = {}) => {
     e.preventDefault();
 
-    //Submit without modal interaction needs to recieve data directly
-
     //Basic verification before trying backend comunication
     if (form.name === "") {
-      setAlertMessage("Preencha o formulário com um nome válido");
+      setPopupMessage({
+        message: "Preencha o formulário com um nome válido",
+        type: "alert",
+      });
       return;
     }
 
-    //if there is not a selected category, form will be the category itself
-    const categoryData = selectedCategory
-      ? selectedCategory
-      : forceData.name
+    //if there is not a selected category or forced data, form will be the category itself
+    const categoryData = forceData.name
       ? forceData
+      : selectedCategory
+      ? selectedCategory
       : form;
+    let message = "Categoria atualizada com sucesso";
 
     if (type === "item") {
       //ingredients treatment
@@ -126,11 +129,13 @@ function MenuControl({ token, loading }) {
         categoryData.items = categoryData.items.map((item) =>
           item.id === form.id ? itemData : item
         );
+        message = "Item alterado com sucesso";
       } else {
         categoryData.items = [
           ...(categoryData.items || []),
           { ...itemData, status: "new" },
         ];
+        message = "Item criado com sucesso";
       }
     } else if (type === "addition") {
       //verify if the name will be a duplicate
@@ -138,8 +143,11 @@ function MenuControl({ token, loading }) {
         (addition) => addition.name === form.name
       );
       if (duplicated) {
-        setAlertMessage("Já existe uma adição com esse nome");
-        return
+        setPopupMessage({
+          message: "Já existe uma adição com esse nome",
+          type: "alert",
+        });
+        return;
       }
       const additionData = form;
 
@@ -152,11 +160,13 @@ function MenuControl({ token, loading }) {
         categoryData.additions = categoryData.additions.map((addition) =>
           addition.name === form.originalName ? additionData : addition
         );
+        message = "Adição alterada com sucesso";
       } else {
         categoryData.additions = [
           ...(categoryData.additions || []),
           additionData,
         ];
+        message = "Adição criada com sucesso";
       }
     }
 
@@ -178,17 +188,21 @@ function MenuControl({ token, loading }) {
             category.id === updatedCategory.id ? updatedCategory : category
           )
         );
-      } catch (error) {
-        setAlertMessage(
-          error.response?.data?.message ||
-            "Houve algum erro ao tentar atualizar a categoria"
-        );
-      } finally {
+
         setOpenModal(false);
+        setPopupMessage({ message: message, type: "success" });
+      } catch (error) {
+        setPopupMessage({
+          message:
+            error.response?.data?.message ||
+            "Houve algum erro ao tentar atualizar a categoria",
+          type: "alert",
+        });
+      } finally {
         loading(false);
       }
-      //if it doesn't have ID it will be created
     } else {
+      //if it doesn't have ID it will be created
       try {
         loading(true);
         const response = await api.post("/menu", form, {
@@ -204,30 +218,66 @@ function MenuControl({ token, loading }) {
           items: [],
         };
 
-        setCategories((prev) => [...prev, newCategory]);
-      } catch (error) {
-        setAlertMessage(
-          error.response?.data?.message ||
-            "Houve algum erro ao tentar criar a categoria"
-        );
-      } finally {
         setOpenModal(false);
+
+        setCategories((prev) => [...prev, newCategory]);
+
+        setPopupMessage({
+          message: "Categoria criada com sucesso",
+          type: "success",
+        });
+      } catch (error) {
+        setPopupMessage({
+          message:
+            error.response?.data?.message ||
+            "Houve algum erro ao tentar criar a categoria",
+          type: "alert",
+        });
+      } finally {
         loading(false);
       }
     }
   };
 
-  const _handleDelete = async (id, category = null) => {
-    try {
-      loading(true);
-      if (category) {
-        const updatedCategory = {
-          ...category,
-          items: category.items.map((item) =>
-            item.id === id ? { ...item, status: "delete" } : item
-          ),
-        };
+  const _handleDelete = async ({
+    categoryId = null,
+    itemId = null,
+    additionName = null,
+  }) => {
+    //if there is only categoryId, it will be deleted
+    if (categoryId && !itemId && !additionName) {
+      try {
+        await api.delete(`/menu?id=${categoryId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
+        setCategories((prev) => prev.filter((category) => category.id !== categoryId));
+      } catch (error) {
+        setPopupMessage({
+          message:
+            error.response?.data?.message ||
+            "Houve algum erro ao tentar deletar a categoria",
+          type: "alert",
+        });
+      } finally {
+        loading(false);
+      }
+    }
+    //If there is categoryId and ItemID, it will send an update with the item carrying "deleted" status
+    if (categoryId && itemId && !additionName) {
+      const categoryData = categories.find(
+        (category) => category.id === categoryId
+      );
+      const updatedCategory = {
+        ...categoryData,
+        items: categoryData.items.map((item) =>
+          item.id === itemId ? { ...item, status: "delete" } : item
+        ),
+      };
+      try {
         const response = await api.put("/menu", updatedCategory, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -235,44 +285,30 @@ function MenuControl({ token, loading }) {
           },
         });
 
-        const updated = response.data.category;
-
         setCategories((prev) =>
-          prev.map((cat) => (cat.id === updated.id ? updated : cat))
+          prev.map((category) =>
+            category.id === response.data.category.id
+              ? response.data.category
+              : category
+          )
         );
-      } else {
-        await api.delete(`/menu?id=${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+      } catch (error) {
+        setPopupMessage({
+          message:
+            error.response?.data?.message ||
+            "Houve algum erro ao tentar deletar o item",
+          type: "alert",
         });
-
-        setCategories((prev) => prev.filter((cat) => cat.id !== id));
-      }
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        localStorage.removeItem("authToken");
+      } finally {
         loading(false);
-        window.location.href = "/auth";
-      } else {
-        setAlertMessage(
-          "Erro ao deletar categoria:",
-          error.response?.data || error.message
-        );
       }
-    } finally {
-      setSelectedCategory(null);
-      loading(false);
-    }
-  };
-
-  const _handleDeleteAddition = async (name, category) => {
-    loading(true);
-    try {
+    } else if (categoryId && !itemId && additionName) {
+      const categoryData = categories.find((a) => a.id === categoryId);
       const updatedCategory = {
-        ...category,
-        additions: category.additions.filter((a) => a.name !== name),
+        ...categoryData,
+        additions: categoryData.additions.filter(
+          (addition) => addition.name !== additionName
+        ),
       };
 
       const response = await api.put("/menu", updatedCategory, {
@@ -282,24 +318,14 @@ function MenuControl({ token, loading }) {
         },
       });
 
-      const updated = response.data.category;
-
       setCategories((prev) =>
-        prev.map((cat) => (cat.id === updated.id ? updated : cat))
+        prev.map((category) =>
+          category.id === response.data.category.id
+            ? response.data.category
+            : category
+        )
       );
-    } catch (error) {
-      if (error.response && error.response.status === 401) {
-        localStorage.removeItem("authToken");
-        window.location.href = "/auth";
-      } else {
-        setAlertMessage(
-          "Erro ao deletar adição:",
-          error.response?.data || error.message
-        );
-      }
     }
-    setSelectedCategory(null);
-    loading(false);
   };
 
   return (
@@ -333,7 +359,7 @@ function MenuControl({ token, loading }) {
                   />
                   <FaTrash
                     size={"2rem"}
-                    onClick={() => _handleDelete(category.id)}
+                    onClick={() => _handleDelete({categoryId: category.id})}
                   />
                 </Actions>
               </span>
@@ -384,7 +410,7 @@ function MenuControl({ token, loading }) {
                       <FaTrash
                         size={"1.5rem"}
                         onClick={() => {
-                          _handleDelete(item.id, category);
+                          _handleDelete({categoryId: category.id, itemId: item.id});
                         }}
                       />
                     </Actions>
@@ -430,7 +456,7 @@ function MenuControl({ token, loading }) {
                             className="icon-action"
                             size={"1.5rem"}
                             onClick={() =>
-                              _handleDeleteAddition(addition.name, category)
+                              _handleDelete({categoryId: category.id, additionName: addition.name})
                             }
                           />
                         </Actions>
@@ -448,111 +474,7 @@ function MenuControl({ token, loading }) {
           Informações{" "}
           <FaSave size={"2rem"} onClick={(e) => _handleSubmit(e, pageInfo)} />
         </b>
-        {pageInfo && (
-          <div className="card info">
-            <div className="card-content">
-              <label className="subtitle">Inativo</label>
-              <textarea
-                rows="4"
-                cols="30"
-                placeholder="Escreva aqui a mensagem que irá aparecer quando o os pedidos não estiverem sendo recebidos"
-                value={pageInfo.additions?.innactiveWarning || ""}
-                onChange={(e) =>
-                  setPageInfo({
-                    ...pageInfo,
-                    additions: {
-                      ...pageInfo.additions,
-                      innactiveWarning: e.target.value,
-                    },
-                  })
-                }
-              />
-              <label className="subtitle">Em pausa</label>
-              <textarea
-                rows="4"
-                cols="30"
-                placeholder="Escreva aqui a mensagem que irá aparecer quando o os pedidos estiverem pausados"
-                value={pageInfo.additions?.pauseWarning || ""}
-                onChange={(e) =>
-                  setPageInfo({
-                    ...pageInfo,
-                    additions: {
-                      ...pageInfo.additions,
-                      pauseWarning: e.target.value,
-                    },
-                  })
-                }
-              />
-              <ul>
-                {[
-                  { key: "monday", label: "segunda" },
-                  { key: "tuesday", label: "terça" },
-                  { key: "wednesday", label: "quarta" },
-                  { key: "thursday", label: "quinta" },
-                  { key: "friday", label: "sexta" },
-                  { key: "saturday", label: "sábado" },
-                  { key: "sunday", label: "domingo" },
-                ].map(({ key, label }) => (
-                  <li key={key}>
-                    <label className="subtitle">{label}</label>
-                    <input
-                      value={pageInfo.additions?.workingHours?.[key] || ""}
-                      onChange={(e) =>
-                        setPageInfo((prev) => ({
-                          ...prev,
-                          additions: {
-                            ...prev.additions,
-                            workingHours: {
-                              ...prev.additions.workingHours,
-                              [key]: e.target.value,
-                            },
-                          },
-                        }))
-                      }
-                    />
-                  </li>
-                ))}
-              </ul>
-              <label
-                className="subtitle action"
-                onClick={() =>
-                  setPageInfo((prev) => ({
-                    ...prev,
-                    additions: {
-                      ...prev.additions,
-                      vacation: !prev.additions.vacation,
-                    },
-                  }))
-                }
-              >
-                Férias{" "}
-                <span>
-                  {pageInfo.additions?.vacation ? (
-                    <ImCheckboxChecked />
-                  ) : (
-                    <ImCheckboxUnchecked />
-                  )}{" "}
-                </span>
-              </label>
-              <label className="subtitle">De férias</label>
-              <textarea
-                rows="4"
-                cols="30"
-                placeholder="Escreva aqui a mensagem que irá aparecer quando estiver de férias"
-                value={pageInfo.additions?.vacationWarning || ""}
-                onChange={(e) =>
-                  setPageInfo({
-                    ...pageInfo,
-                    additions: {
-                      ...pageInfo.additions,
-                      vacationWarning: e.target.value,
-                    },
-                  })
-                }
-              />
-            </div>
-          </div>
-        )}
+        {pageInfo && <InfoManager data={pageInfo} setData={setPageInfo} />}
       </div>
       <Modal active={openModal} close={() => setOpenModal(false)}>
         {type === "category" && (
@@ -627,9 +549,9 @@ function MenuControl({ token, loading }) {
         )}
       </Modal>
       <Popup
-        message={alertMessage}
-        onClose={() => setAlertMessage("")}
-        type="alert"
+        message={popupMessage.message}
+        onClose={() => setPopupMessage({ message: "", type: "" })}
+        type={popupMessage.type}
       />
     </>
   );
