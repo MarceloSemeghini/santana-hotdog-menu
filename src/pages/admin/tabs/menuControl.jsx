@@ -6,12 +6,16 @@ import Actions from "../../../components/actions";
 import Modal from "../../../components/modal";
 import PriceInput from "../../../components/priceInput";
 import { ImCheckboxChecked, ImCheckboxUnchecked } from "react-icons/im";
+import Popup from "../../../components/popup";
 
 function MenuControl({ token, loading }) {
+  const [alertMessage, setAlertMessage] = useState("");
+  const [openModal, setOpenModal] = useState(false);
+
   const fetchedRef = useRef(false);
+
   const [categories, setCategories] = useState([]);
   const [pageInfo, setPageInfo] = useState({});
-  const [openModal, setOpenModal] = useState(false);
   const [form, setForm] = useState({});
   const [type, setType] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -30,10 +34,9 @@ function MenuControl({ token, loading }) {
     if (!token || fetchedRef.current) return;
     fetchedRef.current = true;
 
-    loading(true);
-    api
-      .get("/menu")
-      .then(async (response) => {
+    try {
+      loading(true);
+      api.get("/menu").then(async (response) => {
         let info = response.data.data.find((a) => a.name === "info");
 
         if (!info) {
@@ -70,14 +73,14 @@ function MenuControl({ token, loading }) {
 
         setPageInfo(info);
         setCategories(response.data.data.filter((a) => a.name !== "info"));
-      })
-      .catch((error) => {
-        console.error("Erro ao buscar:", error);
-        alert(error.response?.data?.message || "Erro ao buscar o cardápio");
-      })
-      .finally(() => {
-        loading(false);
       });
+    } catch (error) {
+      setAlertMessage(
+        error.response?.data?.message || "Erro ao buscar o cardápio"
+      );
+    } finally {
+      loading(false);
+    }
   }, [token]);
 
   const _openModal = (form, type) => {
@@ -86,124 +89,131 @@ function MenuControl({ token, loading }) {
     setType(type);
   };
 
-  const _handleSubmit = async (e) => {
+  const _handleSubmit = async (e, forceData = {}) => {
     e.preventDefault();
-    try {
-      loading(true);
-      if (selectedCategory) {
-        let updatedCategory = { ...selectedCategory };
 
-        if (type === "item") {
-          const ingredients = Array.isArray(form.ingredients)
-            ? form.ingredients
-            : form.ingredients
-                .split(",")
-                .map((ing) => ing.trim())
-                .filter(Boolean);
+    //Submit without modal interaction needs to recieve data directly
 
-          const itemData = {
-            ...form,
-            ingredients: ingredients,
-          };
+    //Basic verification before trying backend comunication
+    if (form.name === "") {
+      setAlertMessage("Preencha o formulário com um nome válido");
+      return;
+    }
 
-          if (form.id) {
-            updatedCategory.items = updatedCategory.items.map((item) =>
-              item.id === form.id ? itemData : item
-            );
-          } else {
-            updatedCategory.items = [
-              ...(updatedCategory.items || []),
-              { ...itemData, status: "new" },
-            ];
-          }
-        } else if (type === "addition") {
-          const additionData = {
-            name: form.name,
-            price: form.price,
-          };
+    //if there is not a selected category, form will be the category itself
+    const categoryData = selectedCategory
+      ? selectedCategory
+      : forceData.name
+      ? forceData
+      : form;
 
-          const exists = updatedCategory.additions.find(
-            (add) => add.name === form.originalName
-          );
+    if (type === "item") {
+      //ingredients treatment
+      const ingredients = Array.isArray(form.ingredients)
+        ? form.ingredients
+        : form.ingredients
+            .split(",")
+            .map((ing) => ing.trim())
+            .filter(Boolean);
 
-          if (exists) {
-            updatedCategory.additions = updatedCategory.additions.map((add) =>
-              add.name === form.originalName ? additionData : add
-            );
-          } else {
-            updatedCategory.additions = [
-              ...(updatedCategory.additions || []),
-              additionData,
-            ];
-          }
-        }
+      const itemData = {
+        ...form,
+        ingredients: ingredients,
+      };
 
-        const response = await api.put("/menu", updatedCategory, {
+      //verify if item already exists
+      if (form.id) {
+        categoryData.items = categoryData.items.map((item) =>
+          item.id === form.id ? itemData : item
+        );
+      } else {
+        categoryData.items = [
+          ...(categoryData.items || []),
+          { ...itemData, status: "new" },
+        ];
+      }
+    } else if (type === "addition") {
+      //verify if the name will be a duplicate
+      const duplicated = categoryData.additions.find(
+        (addition) => addition.name === form.name
+      );
+      if (duplicated) {
+        setAlertMessage("Já existe uma adição com esse nome");
+        return
+      }
+      const additionData = form;
+
+      //verifying if addition already exists by its name and using originalName instead of ID
+      const exists = categoryData.additions.find(
+        (addition) => addition.name === form.originalName
+      );
+
+      if (exists) {
+        categoryData.additions = categoryData.additions.map((addition) =>
+          addition.name === form.originalName ? additionData : addition
+        );
+      } else {
+        categoryData.additions = [
+          ...(categoryData.additions || []),
+          additionData,
+        ];
+      }
+    }
+
+    //if it has ID the category exists and will be updates
+    if (categoryData.id) {
+      try {
+        loading(true);
+        const response = await api.put("/menu", categoryData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         });
 
-        updatedCategory = response.data.category;
+        const updatedCategory = response.data.category;
 
         setCategories((prev) =>
           prev.map((category) =>
             category.id === updatedCategory.id ? updatedCategory : category
           )
         );
-      } else {
-        const data = form.name ? form : pageInfo;
-        if (data.id) {
-          const response = await api.put("/menu", data, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
-
-          const updatedCategory = response.data.category;
-
-          setCategories((prev) =>
-            prev.map((category) =>
-              category.id === updatedCategory.id ? updatedCategory : category
-            )
-          );
-        } else {
-          let newCategory = form;
-
-          const response = await api.post("/menu", form, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
-
-          newCategory = {
-            ...form,
-            id: response.data.categoryId,
-            items: [],
-          };
-
-          setCategories((prev) => [...prev, newCategory]);
-        }
-      }
-    } catch (error) {
-      if (error.response?.status === 401) {
-        localStorage.removeItem("authToken");
-        loading(false);
-        window.location.href = "/auth";
-      } else {
-        console.error(
-          "Erro ao enviar categoria:",
-          error.response?.data || error.message
+      } catch (error) {
+        setAlertMessage(
+          error.response?.data?.message ||
+            "Houve algum erro ao tentar atualizar a categoria"
         );
+      } finally {
+        setOpenModal(false);
+        loading(false);
       }
-    } finally {
-      setSelectedCategory(null);
-      setOpenModal(false);
-      setForm({});
-      loading(false);
+      //if it doesn't have ID it will be created
+    } else {
+      try {
+        loading(true);
+        const response = await api.post("/menu", form, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const newCategory = {
+          ...form,
+          id: response.data.categoryId,
+          items: [],
+        };
+
+        setCategories((prev) => [...prev, newCategory]);
+      } catch (error) {
+        setAlertMessage(
+          error.response?.data?.message ||
+            "Houve algum erro ao tentar criar a categoria"
+        );
+      } finally {
+        setOpenModal(false);
+        loading(false);
+      }
     }
   };
 
@@ -246,7 +256,7 @@ function MenuControl({ token, loading }) {
         loading(false);
         window.location.href = "/auth";
       } else {
-        console.error(
+        setAlertMessage(
           "Erro ao deletar categoria:",
           error.response?.data || error.message
         );
@@ -282,7 +292,7 @@ function MenuControl({ token, loading }) {
         localStorage.removeItem("authToken");
         window.location.href = "/auth";
       } else {
-        console.error(
+        setAlertMessage(
           "Erro ao deletar adição:",
           error.response?.data || error.message
         );
@@ -395,8 +405,11 @@ function MenuControl({ token, loading }) {
               {category.additions?.length > 0 && (
                 <div className="card">
                   <div className="card-content list">
-                    {category.additions.map((addition) => (
-                      <span className="content item" key={addition.name}>
+                    {category.additions.map((addition, index) => (
+                      <span
+                        className="content item"
+                        key={addition.name + index}
+                      >
                         {addition.name} R${addition.price.toFixed(2)}
                         <Actions size={"1.5rem"}>
                           <FaEdit
@@ -432,7 +445,8 @@ function MenuControl({ token, loading }) {
         <span className="separator" />
 
         <b className="title action">
-          Informações <FaSave size={"2rem"} onClick={(e) => _handleSubmit(e)} />
+          Informações{" "}
+          <FaSave size={"2rem"} onClick={(e) => _handleSubmit(e, pageInfo)} />
         </b>
         {pageInfo && (
           <div className="card info">
@@ -541,91 +555,82 @@ function MenuControl({ token, loading }) {
         )}
       </div>
       <Modal active={openModal} close={() => setOpenModal(false)}>
-        {(() => {
-          switch (type) {
-            case "category":
-              return (
-                <form onSubmit={(e) => _handleSubmit(e)}>
-                  <label htmlFor="category_name" className="subtitle">
-                    Nome da Categoria
-                  </label>
-                  <input
-                    id="category_name"
-                    value={form.name || ""}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  />
-                  <button>Salvar</button>
-                </form>
-              );
-            case "item":
-              return (
-                <form onSubmit={(e) => _handleSubmit(e)}>
-                  <label htmlFor="item_name" className="subtitle">
-                    Nome do Item
-                  </label>
-                  <input
-                    id="item_name"
-                    value={form.name || ""}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  />
-                  <label htmlFor="item_price" className="subtitle">
-                    Preço
-                  </label>
-                  <PriceInput
-                    value={parseFloat(form.price) || 0}
-                    onChange={(val) =>
-                      setForm({ ...form, price: parseFloat(val) })
-                    }
-                  />
-                  <label htmlFor="item_ingredients" className="subtitle">
-                    Ingredientes
-                  </label>
-                  <textarea
-                    id="item_ingredients"
-                    rows="4"
-                    cols="50"
-                    placeholder="Escreva os ingredients separados por vírgula aqui..."
-                    value={
-                      Array.isArray(form.ingredients)
-                        ? form.ingredients.join(", ")
-                        : form.ingredients || ""
-                    }
-                    onChange={(e) =>
-                      setForm({ ...form, ingredients: e.target.value })
-                    }
-                  />
-                  <button>Salvar</button>
-                </form>
-              );
-            case "addition":
-              return (
-                <form onSubmit={(e) => _handleSubmit(e)}>
-                  <label htmlFor="item_name" className="subtitle">
-                    Qual a adição
-                  </label>
-                  <input
-                    id="item_name"
-                    value={form.name || ""}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  />
-                  <label htmlFor="item_price" className="subtitle">
-                    Preço
-                  </label>
-                  <PriceInput
-                    value={parseFloat(form.price)}
-                    onChange={(val) =>
-                      setForm({ ...form, price: parseFloat(val) })
-                    }
-                  />
-                  <button>Salvar</button>
-                </form>
-              );
-            default:
-              setTimeout(() => setOpenModal(false), 0);
-              break;
-          }
-        })()}
+        {type === "category" && (
+          <form onSubmit={(e) => _handleSubmit(e)}>
+            <label htmlFor="category_name" className="subtitle">
+              Nome da Categoria
+            </label>
+            <input
+              id="category_name"
+              value={form.name || ""}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            <button>Salvar</button>
+          </form>
+        )}
+        {type === "item" && (
+          <form onSubmit={(e) => _handleSubmit(e)}>
+            <label htmlFor="item_name" className="subtitle">
+              Nome do Item
+            </label>
+            <input
+              id="item_name"
+              value={form.name || ""}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            <label htmlFor="item_price" className="subtitle">
+              Preço
+            </label>
+            <PriceInput
+              value={parseFloat(form.price) || 0}
+              onChange={(val) => setForm({ ...form, price: parseFloat(val) })}
+            />
+            <label htmlFor="item_ingredients" className="subtitle">
+              Ingredientes
+            </label>
+            <textarea
+              id="item_ingredients"
+              rows="4"
+              cols="50"
+              placeholder="Escreva os ingredients separados por vírgula aqui..."
+              value={
+                Array.isArray(form.ingredients)
+                  ? form.ingredients.join(", ")
+                  : form.ingredients || ""
+              }
+              onChange={(e) =>
+                setForm({ ...form, ingredients: e.target.value })
+              }
+            />
+            <button>Salvar</button>
+          </form>
+        )}
+        {type === "addition" && (
+          <form onSubmit={(e) => _handleSubmit(e)}>
+            <label htmlFor="item_name" className="subtitle">
+              Qual a adição
+            </label>
+            <input
+              id="item_name"
+              value={form.name || ""}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            <label htmlFor="item_price" className="subtitle">
+              Preço
+            </label>
+            <PriceInput
+              value={parseFloat(form.price)}
+              onChange={(val) => setForm({ ...form, price: parseFloat(val) })}
+            />
+            <button>Salvar</button>
+          </form>
+        )}
       </Modal>
+      <Popup
+        message={alertMessage}
+        onClose={() => setAlertMessage("")}
+        type="alert"
+      />
     </>
   );
 }

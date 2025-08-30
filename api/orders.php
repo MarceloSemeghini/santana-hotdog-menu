@@ -13,6 +13,10 @@ switch ($method) {
         handleGet();
         break;
 
+    case 'PUT':
+        handleUpdate();
+        break;
+
     default:
         http_response_code(405);
         echo json_encode(["status" => "fail", "message" => "Método não permitido"]);
@@ -26,7 +30,7 @@ function handlePost()
     $rawInput = file_get_contents("php://input");
     $body = json_decode($rawInput, true);
 
-    if (!isset($body["name"]) || !isset($body["order"])) {
+    if (!isset($body["name"]) || !isset($body["items"])) {
         http_response_code(400);
         echo json_encode(["status" => "fail", "message" => "Campos obrigatórios ausentes"]);
         exit;
@@ -34,7 +38,16 @@ function handlePost()
 
     $id = generate_id();
     $name = $body["name"];
-    $orderData = $body["order"];
+    $orderData = $body["items"];
+
+    $total = 0;
+    if (!empty($orderData['products'])) {
+        foreach ($orderData['products'] as $item) {
+            $price = isset($item['totalPrice']) ? floatval($item['totalPrice']) : floatval($item['price']);
+            $total += $price;
+        }
+    }
+
     $jsonOrder = is_string($orderData) ? $orderData : json_encode($orderData);
 
     $workDateResult = $conn->query("SELECT last_active FROM users ORDER BY last_active DESC LIMIT 1");
@@ -80,8 +93,9 @@ function handlePost()
             "status" => "success",
             "data" => [
                 "id" => $id,
-                "nome" => $name,
-                "order_code" => $newOrderCode
+                "name" => $name,
+                "order_code" => $newOrderCode,
+                "total" => number_format($total, 2, '.', '')
             ]
         ]);
     } catch (Exception $e) {
@@ -141,7 +155,7 @@ function handleGet()
         $orders[] = [
             "id" => $row['id'],
             "name" => $row['name'],
-            "order" => json_decode($row['order_data'], true),
+            "items" => json_decode($row['order_data'], true),
             "order_code" => $row['order_code'],
             "status" => $row['status'],
             "created_at" => $row['created_at']
@@ -157,5 +171,39 @@ function handleGet()
     ]);
 }
 
+function handleUpdate()
+{
+    global $conn;
+
+    $rawInput = file_get_contents("php://input");
+    $body = json_decode($rawInput, true);
+
+    if (!isset($body["id"]) || !isset($body["status"])) {
+        http_response_code(400);
+        echo json_encode(["status" => "fail", "message" => "Falha ao receber dados do pedido"]);
+        exit;
+    }
+
+    $id = $body["id"];
+    $status = $body["status"];
+
+    try {
+        $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
+        $stmt->bind_param("ss", $status, $id);
+        $stmt->execute();
+        $stmt->close();
+
+        $conn->commit();
+        echo json_encode([
+            "status" => "success",
+            "message" => "Pedido atualizada com sucesso",
+            "category" => $status
+        ]);
+    } catch (Exception $e) {
+        $conn->rollback();
+        http_response_code(500);
+        echo json_encode(["status" => "fail", "message" => "Erro ao atualizar pedido", "error" => $e->getMessage()]);
+    }
+}
 
 

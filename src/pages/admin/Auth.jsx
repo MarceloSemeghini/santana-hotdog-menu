@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import Header from "../../components/header";
 import api from "../../utils";
 import PasswordInput from "../../components/passwordInput";
+import Popup from "../../components/popup";
 
 function Auth({ loading }) {
+  const [alertMessage, setAlertMessage] = useState("");
+
   const token = localStorage.getItem("authToken");
   const [user, setUser] = useState({ email: "", password: "" });
 
@@ -27,11 +30,10 @@ function Auth({ loading }) {
         loading(false);
         window.location.href = "/admin";
       } else {
-        alert(response.data.message || "Falha no login.");
+        setAlertMessage(response.data.message || "Falha no login.");
       }
     } catch (error) {
-      console.error("Erro ao enviar:", error);
-      alert(error.response?.data?.message || "Erro ao fazer login");
+      setAlertMessage(error.response?.data?.message || "Erro ao fazer login");
     } finally {
       loading(false);
     }
@@ -46,7 +48,7 @@ function Auth({ loading }) {
           <input
             type="text"
             id="email"
-            autocomplete="on"
+            autoComplete="on"
             placeholder="email@exemplo.com"
             onChange={(e) => setUser({ ...user, email: e.target.value })}
           />
@@ -59,6 +61,11 @@ function Auth({ loading }) {
           <button type="submit">enviar</button>
         </form>
       </div>
+      <Popup
+        message={alertMessage}
+        onClose={() => setAlertMessage("")}
+        type="alert"
+      />
     </div>
   );
 }

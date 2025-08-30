@@ -3,39 +3,32 @@ import Header from "../components/header";
 import api, { formatString } from "../utils";
 import Floater from "../components/floater";
 import { IoIosArrowForward } from "react-icons/io";
+import Popup from "../components/popup";
 
 function Home({ cart, setCart, loading }) {
+  const [alertMessage, setAlertMessage] = useState("");
+  
   const [categories, setCategories] = useState([]);
   const [pageInfo, setPageInfo] = useState({});
   const [selectedItem, setSelectedItem] = useState({});
   const [status, setStatus] = useState([]);
 
   useEffect(() => {
-    if (status === "paused" || status === "inactive" || pageInfo.vacation) {
-      setCart([]);
-      localStorage.setItem("cart", JSON.stringify([]));
-      return;
-    }
-    
-    try {
-      loading(true);
-      api.get("/menu").then((response) => {
-        setPageInfo(
-          response.data.data.find((a) => a.name === "info")?.additions || {}
-        );
-        setCategories(response.data.data.filter((a) => a.name !== "info"));
-      });
-    } catch (error) {
-      console.error("Erro ao enviar:", error);
-      alert(error.response?.data?.message || "Erro ao fazer buscar o cardápio");
-    } finally {
-      loading(false);
-    }
+    let isMounted = true;
 
-    try {
-      loading(true);
-      api.get("/work_status").then((response) => {
-        const usersStatus = response.data.data;
+    const fetchData = async () => {
+      try {
+        loading(true);
+        const menuResponse = await api.get("/menu");
+        if (!isMounted) return;
+
+        setPageInfo(
+          menuResponse.data.data.find((a) => a.name === "info")?.additions || {}
+        );
+        setCategories(menuResponse.data.data.filter((a) => a.name !== "info"));
+
+        const statusResponse = await api.get("/work_status");
+        const usersStatus = statusResponse.data.data;
 
         if (usersStatus.includes("paused")) {
           setStatus("paused");
@@ -44,14 +37,26 @@ function Home({ cart, setCart, loading }) {
         } else {
           setStatus("inactive");
         }
-      });
-    } catch (error) {
-      console.error("Erro ao enviar:", error);
-      alert(error.response?.data?.message || "Erro ao fazer buscar o cardápio");
-    } finally {
-      loading(false);
+      } catch (error) {
+        setAlertMessage(error.response?.data?.message || "Erro ao buscar dados");
+      } finally {
+        loading(false);
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (status === "paused" || status === "inactive" || pageInfo.vacation) {
+      setCart([]);
+      localStorage.setItem("cart", JSON.stringify([]));
     }
-  }, [loading]);
+  }, [status, pageInfo.vacation, setCart]);
 
   const addToCart = (item) => {
     if (status === "paused" || status === "inactive" || pageInfo.vacation)
@@ -231,6 +236,7 @@ function Home({ cart, setCart, loading }) {
           Finalizar <IoIosArrowForward size={"1rem"} />
         </button>
       </Floater>
+      <Popup message={alertMessage} onClose={() => setAlertMessage("")} type="alert" />
     </div>
   );
 }

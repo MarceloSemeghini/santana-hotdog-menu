@@ -1,0 +1,36 @@
+.popup {
+  background-color: var(--attention);
+  color: var(--secondary-light);
+
+  position: fixed;
+  z-index: 9999;
+  top: 2rem;
+  left: 50%;
+
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  width: max-content;
+  max-width: 80vw;
+  gap: 1rem;
+  padding:  1rem;
+
+  font-weight: 600;
+  font-size: 20px;
+
+  box-shadow: 0px 0px 5px var(--attention);
+
+  svg {
+    color: var(--secondary-light);
+  }
+}
+.type-alert {
+  background-color: var(--alert);
+
+  box-shadow: 0px 0px 5px var(--alert);
+}
+.type-success {
+  background-color: var(--success);
+
+  box-shadow: 0px 0px 5px var(--success);
+}

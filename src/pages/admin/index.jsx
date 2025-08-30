@@ -9,20 +9,30 @@ import { MdMenuBook } from "react-icons/md";
 import { TbGraphFilled } from "react-icons/tb";
 import Floater from "../../components/floater";
 import { FaPause, FaPlay, FaStop } from "react-icons/fa6";
+import Popup from "../../components/popup";
 
 function Admin({ loading }) {
+  const [alertMessage, setAlertMessage] = useState("");
+
   const token = localStorage.getItem("authToken");
   const [activeTab, setActiveTab] = useState("orders");
   const [user, setUser] = useState({});
   const [status, setStatus] = useState(false);
 
   useEffect(() => {
-    loading(true);
     if (user.userId) {
-      api.get(`/work_status?id=${user.userId}`).then((response) => {
-        setStatus(response.data.data);
-      });
-      loading(false);
+      try {
+        loading(true);
+        api.get(`/work_status?id=${user.userId}`).then((response) => {
+          setStatus(response.data.data);
+        });
+      } catch (error) {
+        setAlertMessage(
+          error.response?.data?.message || "Erro ao buscar dados"
+        );
+      } finally {
+        loading(false);
+      }
     }
   }, [user]);
 
@@ -41,7 +51,9 @@ function Admin({ loading }) {
       );
       setStatus(response.data.data);
     } catch (error) {
-      console.error("Erro ao atualizar status:", error);
+      setAlertMessage(
+        error.response?.data?.message || "Erro ao atualizar status:"
+      );
     } finally {
       loading(false);
     }
@@ -66,15 +78,16 @@ function Admin({ loading }) {
           );
           if (!response.data.valid) {
             localStorage.removeItem("authToken");
-            loading(false);
             window.location.href = "/auth";
           } else {
             setUser(response.data.user);
           }
         } catch (error) {
-          console.error("Erro ao verificar token:", error);
+          setAlertMessage(
+            error.response?.data?.message || "Erro ao verificar token:",
+            error
+          );
           localStorage.removeItem("authToken");
-          loading(false);
           window.location.href = "/auth";
         } finally {
           loading(false);
@@ -136,6 +149,11 @@ function Admin({ loading }) {
           <FaPlay size={"2rem"} />
         </button>
       </Floater>
+      <Popup
+        message={alertMessage}
+        onClose={() => setAlertMessage("")}
+        type="alert"
+      />
     </div>
   );
 }

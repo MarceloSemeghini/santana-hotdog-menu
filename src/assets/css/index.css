@@ -13,6 +13,7 @@
 @import "./components/header.css";
 @import "./components/loader.css";
 @import "./components/modal.css";
+@import "./components/popup.css";
 
 * {
   margin: 0;

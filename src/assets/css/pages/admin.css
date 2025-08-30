@@ -33,6 +33,18 @@
         border: 2px dashed var(--secondary-light);
       }
     }
+    .finish {
+      background-color: transparent;
+      border: transparent;
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      padding: 0;
+      svg {
+        background-color: var(--primary);
+        border-radius: 100%;
+      }
+    }
   }
 
   .status {

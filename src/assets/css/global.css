@@ -57,6 +57,16 @@ button {
   svg {
     color: var(--secondary-light);
   }
+
+  &.proceed {
+    background-color: var(--success);
+    border-color: var(--success);
+  }
+  &.cancel {
+    background-color: transparent;
+    color: var(--alert);
+    border-color: var(--alert);
+  }
 }
 
 svg {
