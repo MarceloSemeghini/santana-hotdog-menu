@@ -72,7 +72,11 @@ function MenuControl({ token, loading }) {
         }
 
         setPageInfo(info);
-        setCategories(response.data.data.filter((a) => a.name !== "info"));
+        setCategories(
+          response.data.data
+            .filter((a) => a.name !== "info")
+            .map(cat => ({ ...cat, items: cat.items || [], additions: cat.additions || [] }))
+        );
       });
     } catch (error) {
       setPopupMessage({
@@ -138,34 +142,28 @@ function MenuControl({ token, loading }) {
         message = "Item criado com sucesso";
       }
     } else if (type === "addition") {
-      //verify if the name will be a duplicate
-      const duplicated = categoryData.additions.find(
+      const additions = categoryData.additions || [];
+
+      const duplicated = additions.find(
         (addition) => addition.name === form.name
       );
-      if (duplicated) {
+      if (duplicated && !form.originalName) {
         setPopupMessage({
           message: "Já existe uma adição com esse nome",
           type: "alert",
         });
         return;
       }
+
       const additionData = form;
 
-      //verifying if addition already exists by its name and using originalName instead of ID
-      const exists = categoryData.additions.find(
-        (addition) => addition.name === form.originalName
-      );
-
-      if (exists) {
-        categoryData.additions = categoryData.additions.map((addition) =>
+      if (form.originalName) {
+        categoryData.additions = additions.map((addition) =>
           addition.name === form.originalName ? additionData : addition
         );
         message = "Adição alterada com sucesso";
       } else {
-        categoryData.additions = [
-          ...(categoryData.additions || []),
-          additionData,
-        ];
+        categoryData.additions = [...additions, additionData];
         message = "Adição criada com sucesso";
       }
     }
@@ -553,7 +551,7 @@ function MenuControl({ token, loading }) {
               Preço
             </label>
             <PriceInput
-              value={parseFloat(form.price)}
+              value={parseFloat(form.price) || 0}
               onChange={(val) => setForm({ ...form, price: parseFloat(val) })}
             />
             <button>Salvar</button>

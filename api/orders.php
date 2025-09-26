@@ -74,16 +74,23 @@ function handlePost()
 
     $newOrderCode = ($maxOrderCode === null) ? 1 : $maxOrderCode + 1;
 
-    $currentDate = get_date();
+    $currentDate = date("Y-m-d H:i:s");
+    $hour = (int) date("H");
+
+    if ($hour < 12) {
+        $workDate = date("Y-m-d", strtotime("-1 day"));
+    } else {
+        $workDate = date("Y-m-d");
+    }
 
     $conn->begin_transaction();
 
     try {
         $stmt = $conn->prepare("
-            INSERT INTO orders (id, name, order_data, order_code, created_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO orders (id, name, order_data, order_code, created_at, work_date)
+            VALUES (?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param("sssis", $id, $name, $jsonOrder, $newOrderCode, $currentDate);
+        $stmt->bind_param("sssiss", $id, $name, $jsonOrder, $newOrderCode, $currentDate, $workDate);
         $stmt->execute();
         $stmt->close();
 
@@ -118,22 +125,22 @@ function handleGet()
 
     $query = "SELECT * FROM orders";
     $params = [];
-    $types = "";
+    $types = [];
 
     if ($date || $status) {
         $query .= " WHERE";
         $conditions = [];
 
         if ($date) {
-            $conditions[] = " created_at = ?";
+            $conditions[] = " work_date = ?";
             $params[] = $date;
-            $types .= "s";
+            $types[] = "s";
         }
 
         if ($status) {
             $conditions[] = " status = ?";
             $params[] = $status;
-            $types .= "s";
+            $types[] = "s";
         }
 
         $query .= implode(" AND", $conditions);
@@ -144,7 +151,7 @@ function handleGet()
     $stmt = $conn->prepare($query);
 
     if ($params) {
-        $stmt->bind_param($types, ...$params);
+        $stmt->bind_param(implode("", $types), ...$params);
     }
 
     $stmt->execute();
@@ -158,7 +165,8 @@ function handleGet()
             "items" => json_decode($row['order_data'], true),
             "order_code" => $row['order_code'],
             "status" => $row['status'],
-            "created_at" => $row['created_at']
+            "created_at" => $row['created_at'], 
+            "work_date" => $row['work_date']   
         ];
     }
 
@@ -188,6 +196,8 @@ function handleUpdate()
     $status = $body["status"];
 
     try {
+        $conn->commit();
+
         $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
         $stmt->bind_param("ss", $status, $id);
         $stmt->execute();
