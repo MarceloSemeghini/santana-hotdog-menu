@@ -4,10 +4,11 @@ import api, { formatString } from "../utils";
 import Floater from "../components/floater";
 import { IoIosArrowForward } from "react-icons/io";
 import Popup from "../components/popup";
+import Drawer from "../components/drawer";
 
 function Home({ cart, setCart, loading }) {
   const [alertMessage, setAlertMessage] = useState("");
-  
+
   const [categories, setCategories] = useState([]);
   const [pageInfo, setPageInfo] = useState({});
   const [selectedItem, setSelectedItem] = useState({});
@@ -25,7 +26,11 @@ function Home({ cart, setCart, loading }) {
         setPageInfo(
           menuResponse.data.data.find((a) => a.name === "info")?.additions || {}
         );
-        setCategories(menuResponse.data.data.filter((a) => a.name !== "info"));
+        setCategories(
+          menuResponse.data.data.filter(
+            (a) => a.name !== "info" && a.items?.length > 0
+          )
+        );
 
         const statusResponse = await api.get("/work_status");
         const usersStatus = statusResponse.data.data;
@@ -38,7 +43,9 @@ function Home({ cart, setCart, loading }) {
           setStatus("inactive");
         }
       } catch (error) {
-        setAlertMessage(error.response?.data?.message || "Erro ao buscar dados");
+        setAlertMessage(
+          error.response?.data?.message || "Erro ao buscar dados"
+        );
       } finally {
         loading(false);
       }
@@ -70,7 +77,11 @@ function Home({ cart, setCart, loading }) {
 
   return (
     <div className="page" id="home">
-      <Header></Header>
+      <Header>
+        {categories && categories?.length > 1 && (
+          <Drawer categories={categories} />
+        )}
+      </Header>
       <div className="container">
         {pageInfo.vacation ? (
           <h1>estamos de férias</h1>
@@ -104,9 +115,11 @@ function Home({ cart, setCart, loading }) {
         {categories &&
           categories.map(
             (category) =>
-              category.items.length > 0 && (
-                <div className="section" key={category.id}>
-                  <h2 className="title" style={{textAlign: "end"}}>{category.name}</h2>
+              category?.items?.length > 0 && (
+                <div className="section" key={category.id} id={category.id}>
+                  <h2 className="title" style={{ textAlign: "end", padding: "0 1rem" }}>
+                    {category.name}
+                  </h2>
                   {category.items.map((item) => (
                     <div
                       className={`card ${
@@ -236,7 +249,11 @@ function Home({ cart, setCart, loading }) {
           Finalizar <IoIosArrowForward size={"1rem"} />
         </button>
       </Floater>
-      <Popup message={alertMessage} onClose={() => setAlertMessage("")} type="alert" />
+      <Popup
+        message={alertMessage}
+        onClose={() => setAlertMessage("")}
+        type="alert"
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Auth from "./pages/admin/Auth";
 import Admin from "./pages/admin";
 import { useCallback, useState } from "react";
 import Loader from "./components/loader";
+import OrderTicket from "./pages/OrderTicket";
 
 function App() {
   const [loading, setLoading] = useState(false);
@@ -36,6 +37,12 @@ function App() {
               setCart={setCart}
               loading={setLoad}
             />
+          }
+        />
+        <Route
+          path="/checkout/:orderId"
+          element={
+            <OrderTicket />
           }
         />
         <Route

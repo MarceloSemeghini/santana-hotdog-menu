@@ -1,0 +1,50 @@
+.menu-toggle {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  padding: 0 1rem;
+
+  transition: all 0.3s ease-in-out;
+}
+.overlay {
+  background-color: var(--font-secondary);
+  opacity: 0.5;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 4rem;
+  z-index: -1;
+}
+.drawer-menu {
+  background-color: var(--secondary-light);
+  position: fixed;
+  top: 4rem;
+  right: 0;
+  height: calc(100% - 4rem);
+
+  .menu-options {
+    list-style-type: none;
+    padding: 1rem;
+
+    li {
+        border-top: 2px dashed var(--secondary);
+        padding: .5rem;
+
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--font-primary);
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        &:first-of-type {
+            margin-top: 0;
+            border: unset;
+        }
+    }
+  }
+}

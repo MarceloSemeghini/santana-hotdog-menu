@@ -21,10 +21,9 @@ function Orders({ token, user, loading }) {
 
   const deliveryOrders = orders.filter((order) => order.address);
   const localOrders = orders.filter((order) => !order.address);
-  
+
   const fetchOrders = async () => {
     try {
-      loading(true);
       const response = await api.get("/orders", {
         params: { status: "active" },
         headers: { Authorization: `Bearer ${token}` },
@@ -47,14 +46,14 @@ function Orders({ token, user, loading }) {
       setAlertMessage(
         error.response?.data?.message || "Erro ao buscar pedidos"
       );
-    } finally {
-      loading(false);
     }
   };
 
   useEffect(() => {
     if (!token) return;
+    loading(true);
     fetchOrders();
+    loading(false);
   }, [token]);
 
   useEffect(() => {
@@ -66,7 +65,7 @@ function Orders({ token, user, loading }) {
 
     fetchOrders();
 
-    intervalRef.current = setInterval(fetchOrders, 5000);
+    intervalRef.current = setInterval(fetchOrders, 10000);
 
     return () => {
       clearInterval(intervalRef.current);
@@ -74,10 +73,10 @@ function Orders({ token, user, loading }) {
     };
   }, [token, user.status, document.hidden]);
 
-  const toggleItemCompleted = (orderIndex, itemIndex) => {
+  const toggleItemCompleted = (orderId, itemIndex) => {
     setOrders((prev) =>
-      prev.map((order, oIdx) =>
-        oIdx === orderIndex
+      prev.map((order) =>
+        order.id === orderId
           ? {
               ...order,
               items: {
@@ -115,8 +114,14 @@ function Orders({ token, user, loading }) {
 
     try {
       loading(true);
-      await api.put("/orders", { id: orderId, status });
-      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      const response = await api.put("/orders", { id: orderId, status });
+      if (response.status === "success") {
+        setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      } else {
+        setAlertMessage(
+          "Erro ao atualizar pedido, tente novamente mais tarde."
+        );
+      }
     } catch (error) {
       setAlertMessage(
         error.response?.data?.message || "Erro ao atualizar pedido"
@@ -140,7 +145,6 @@ function Orders({ token, user, loading }) {
   return (
     <div className="container" style={{ alignItems: "center" }}>
       <div className="order-type-selection">
-
         <span
           className={`local-orders ${selectedTab === "local" ? "active" : ""}`}
           onClick={() => setSelectedTab("local")}
@@ -160,64 +164,74 @@ function Orders({ token, user, loading }) {
         </span>
       </div>
 
-      {(selectedTab === "local" ? localOrders : deliveryOrders).map(
-        (order, orderIndex) => (
-          <div key={order.id} className="card order">
-            <div className="card-content">
-              <h2 className="title">
-                {order.order_code} - {order.name}
-              </h2>
+      {(selectedTab === "local" ? localOrders : deliveryOrders).map((order) => (
+        <div key={order.id} className="card order">
+          <div className="card-content">
+            <h2 className="title">
+              {order.order_code} - {order.name}
+            </h2>
 
-              {order.items.note && (
-                <>
-                  <p>Nota: {order.items.note}</p>
-                  <span className="separator" />
-                </>
-              )}
+            {order.items.note && (
+              <>
+                <p>Nota: {order.items.note}</p>
+                <span className="separator" />
+              </>
+            )}
 
-              {order.items.products?.map((item, index) => (
-                <div
-                  key={item.id || index}
-                  onClick={() => toggleItemCompleted(orderIndex, index)}
-                >
-                  {index > 0 && <span className="separator" />}
-                  <p>
-                    {item.completed ? (
-                      <ImCheckboxChecked />
-                    ) : (
-                      <ImCheckboxUnchecked />
-                    )}{" "}
-                    {item.name}
-                  </p>
-                  {item.extra?.length > 0 && (
-                    <p>Extra: {item.extra.map((e) => e.name).join(", ")}</p>
-                  )}
-                </div>
-              ))}
-
-              <span className="separator" />
-              <div className="order-actions">
-                <button
-                  className="cancel"
-                  onClick={() => {
-                    setConfirmationType("cancel");
-                    setSelectedOrderId(order.id);
-                    setOpenModal(true);
-                  }}
-                >
-                  <IoMdClose size={"2rem"} />
-                </button>
-                <button
-                  className="finish"
-                  onClick={() => _updateOrderStatus(order.id, "completed")}
-                >
-                  <IoMdCheckmark size={"2rem"} />
-                </button>
+            {order.items.products?.map((item, index) => (
+              <div
+                key={item.id || index}
+                onClick={() => toggleItemCompleted(order.id, index)}
+              >
+                {index > 0 && <span className="separator" />}
+                <p>
+                  {item.completed ? (
+                    <ImCheckboxChecked />
+                  ) : (
+                    <ImCheckboxUnchecked />
+                  )}{" "}
+                  {item.name}
+                </p>
+                {item.extra?.length > 0 && (
+                  <p>Extra: {item.extra.map((e) => e.name).join(", ")}</p>
+                )}
               </div>
+            ))}
+
+            {order?.address && (
+              <>
+                <span className="separator" />
+                <div className="order-address">
+                  <p><b>Cep:</b> {order?.address.postalCode.slice(0, 5) + "-" + order?.address.postalCode.slice(5)}</p>
+                  <p><b>Bairro:</b> {order?.address.district}</p>
+                  <p><b>Rua:</b> {order?.address.address}</p>
+                  <p><b>Número:</b> {order?.address.number}</p>
+                </div>
+              </>
+            )}
+
+            <span className="separator" />
+            <div className="order-actions">
+              <button
+                className="cancel"
+                onClick={() => {
+                  setConfirmationType("cancel");
+                  setSelectedOrderId(order.id);
+                  setOpenModal(true);
+                }}
+              >
+                <IoMdClose size={"2rem"} />
+              </button>
+              <button
+                className="finish"
+                onClick={() => _updateOrderStatus(order.id, "completed")}
+              >
+                <IoMdCheckmark size={"2rem"} />
+              </button>
             </div>
           </div>
-        )
-      )}
+        </div>
+      ))}
 
       <Modal active={openModal} close={() => setOpenModal(false)}>
         {confirmationType === "complete"

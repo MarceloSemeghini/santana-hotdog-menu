@@ -74,6 +74,16 @@
         border: 2px dashed var(--secondary-light);
       }
     }
+    .order-address {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      p, b {
+        font-size: 20px;
+
+        color: var(--font-secondary);
+      }
+    }
     .order-actions {
       display: flex;
       padding: 0.5rem;

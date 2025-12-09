@@ -106,11 +106,10 @@ function handleGet()
 {
     global $conn;
 
-    authenticate();
-
     $start_date = $_GET['start_date'] ?? null;
     $end_date = $_GET['end_date'] ?? null;
     $status = $_GET['status'] ?? null;
+    $id = $_GET['id'] ?? null;
 
     $query = "SELECT * FROM orders";
     $params = [];
@@ -118,22 +117,30 @@ function handleGet()
 
     $conditions = [];
 
-    if ($start_date && $end_date) {
-        $conditions[] = "work_date BETWEEN ? AND ?";
-        $params[] = $start_date;
-        $params[] = $end_date;
+    if ($id) {
+        $conditions[] = "id = ?";
+        $params[] = $id;
         $types[] = "s";
-        $types[] = "s";
-    } elseif ($start_date) {
-        $conditions[] = "work_date >= ?";
-        $params[] = $start_date;
-        $types[] = "s";
-    }
+    } else {
+        authenticate();
 
-    if ($status) {
-        $conditions[] = "status = ?";
-        $params[] = $status;
-        $types[] = "s";
+        if ($start_date && $end_date) {
+            $conditions[] = "work_date BETWEEN ? AND ?";
+            $params[] = $start_date;
+            $params[] = $end_date;
+            $types[] = "s";
+            $types[] = "s";
+        } elseif ($start_date) {
+            $conditions[] = "work_date >= ?";
+            $params[] = $start_date;
+            $types[] = "s";
+        }
+
+        if ($status) {
+            $conditions[] = "status = ?";
+            $params[] = $status;
+            $types[] = "s";
+        }
     }
 
     if ($conditions) {
