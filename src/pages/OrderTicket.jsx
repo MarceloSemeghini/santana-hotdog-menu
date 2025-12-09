@@ -22,8 +22,6 @@ function OrderTicket({}) {
     return `R$ ${sum.toFixed(2).replace(".", ",")}`;
   }, [order]);
 
-  console.log(order);
-
   const fetchOrders = async () => {
     if (!orderId) return;
     try {
@@ -48,16 +46,17 @@ function OrderTicket({}) {
       <Header></Header>
       <div className="container" id="ticket">
         <div className="order-ticket">
+          <span className="ticket-code">{order?.order_code}</span>
           <b className="title">Sua Comanda</b>
           <span className="separator" />
-          <p>
-            <b>{order.order_code}</b> - {order.name}
-          </p>
+          <p>{order?.name}</p>
           <span className="separator" />
           <p>
             Valor a pagar: <span style={{ whiteSpace: "nowrap" }}>{total}</span>{" "}
           </p>
-          <p className="cancel">Se deseja cancelar o seu pedido, por favor, dirija-se ao balcão.</p>
+          <p className="cancel">
+            Se deseja cancelar o seu pedido, por favor, dirija-se ao balcão.
+          </p>
         </div>
         <Popup
           message={alertMessage}

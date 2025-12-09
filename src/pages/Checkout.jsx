@@ -97,7 +97,7 @@ function Checkout({ cart, setCart, loading }) {
     }
   };
 
-  const _finalize = async () => {
+  const _finalize = () => {
     const name = form.name.trim();
 
     if (name === "" || name.length < 2) {
@@ -127,7 +127,7 @@ function Checkout({ cart, setCart, loading }) {
           address: orderType === "delivery" ? form.address : null,
         })
         .then((response) => {
-          window.location.href = `/checkout/${response.data.data.order_id}`;
+          window.location.href = `/checkout/${response.data.data.id}`;
         });
     } catch (error) {
       setAlertMessage(
