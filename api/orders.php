@@ -40,6 +40,8 @@ function handlePost()
     $name = $body["name"];
     $orderData = $body["items"];
 
+    $address = isset($body["address"]) ? json_encode($body["address"]) : null;
+
     $total = 0;
     if (!empty($orderData['products'])) {
         foreach ($orderData['products'] as $item) {
@@ -50,47 +52,32 @@ function handlePost()
 
     $jsonOrder = is_string($orderData) ? $orderData : json_encode($orderData);
 
-    $workDateResult = $conn->query("SELECT last_active FROM users ORDER BY last_active DESC LIMIT 1");
-    $workDate = null;
-    if ($row = $workDateResult->fetch_assoc()) {
-        $workDate = $row['last_active'];
-    }
-    $workDateResult->free();
+    $hour = (int) date("H");
+    $workDate = ($hour < 12) ? date("Y-m-d", strtotime("-1 day")) : date("Y-m-d");
 
     $stmt = $conn->prepare("
         SELECT MAX(order_code) AS max_order_code 
         FROM orders 
-        WHERE created_at = ?
+        WHERE work_date = ?
     ");
     $stmt->bind_param("s", $workDate);
     $stmt->execute();
     $result = $stmt->get_result();
-
-    $maxOrderCode = null;
-    if ($row = $result->fetch_assoc()) {
-        $maxOrderCode = $row['max_order_code'];
-    }
+    $maxOrderCode = ($row = $result->fetch_assoc()) ? $row['max_order_code'] : null;
     $stmt->close();
 
     $newOrderCode = ($maxOrderCode === null) ? 1 : $maxOrderCode + 1;
 
     $currentDate = date("Y-m-d H:i:s");
-    $hour = (int) date("H");
-
-    if ($hour < 12) {
-        $workDate = date("Y-m-d", strtotime("-1 day"));
-    } else {
-        $workDate = date("Y-m-d");
-    }
 
     $conn->begin_transaction();
 
     try {
         $stmt = $conn->prepare("
-            INSERT INTO orders (id, name, order_data, order_code, created_at, work_date)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO orders (id, name, order_data, order_code, created_at, work_date, address)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param("sssiss", $id, $name, $jsonOrder, $newOrderCode, $currentDate, $workDate);
+        $stmt->bind_param("sssisss", $id, $name, $jsonOrder, $newOrderCode, $currentDate, $workDate, $address);
         $stmt->execute();
         $stmt->close();
 
@@ -114,36 +101,43 @@ function handlePost()
         ]);
     }
 }
+
 function handleGet()
 {
     global $conn;
 
     authenticate();
 
-    $date = $_GET['date'] ?? null;
+    $start_date = $_GET['start_date'] ?? null;
+    $end_date = $_GET['end_date'] ?? null;
     $status = $_GET['status'] ?? null;
 
     $query = "SELECT * FROM orders";
     $params = [];
     $types = [];
 
-    if ($date || $status) {
-        $query .= " WHERE";
-        $conditions = [];
+    $conditions = [];
 
-        if ($date) {
-            $conditions[] = " work_date = ?";
-            $params[] = $date;
-            $types[] = "s";
-        }
+    if ($start_date && $end_date) {
+        $conditions[] = "work_date BETWEEN ? AND ?";
+        $params[] = $start_date;
+        $params[] = $end_date;
+        $types[] = "s";
+        $types[] = "s";
+    } elseif ($start_date) {
+        $conditions[] = "work_date >= ?";
+        $params[] = $start_date;
+        $types[] = "s";
+    }
 
-        if ($status) {
-            $conditions[] = " status = ?";
-            $params[] = $status;
-            $types[] = "s";
-        }
+    if ($status) {
+        $conditions[] = "status = ?";
+        $params[] = $status;
+        $types[] = "s";
+    }
 
-        $query .= implode(" AND", $conditions);
+    if ($conditions) {
+        $query .= " WHERE " . implode(" AND ", $conditions);
     }
 
     $query .= " ORDER BY order_code ASC";
@@ -165,8 +159,9 @@ function handleGet()
             "items" => json_decode($row['order_data'], true),
             "order_code" => $row['order_code'],
             "status" => $row['status'],
-            "created_at" => $row['created_at'], 
-            "work_date" => $row['work_date']   
+            "created_at" => $row['created_at'],
+            "work_date" => $row['work_date'],
+            "address" => json_decode($row['address'], true)
         ];
     }
 

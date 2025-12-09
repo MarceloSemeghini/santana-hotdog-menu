@@ -24,7 +24,8 @@ textarea {
   color: var(--font-secondary);
 
   &:focus {
-    border: 2px solid var(--primary);
+    margin: 1px;
+    border: 1px solid var(--primary);
     outline: none;
   }
 
@@ -67,6 +68,11 @@ button {
     color: var(--alert);
     border-color: var(--alert);
   }
+
+  &:disabled {
+    background-color: var(--gray);
+    border: 2px solid var(--gray);
+  }
 }
 
 svg {
@@ -84,7 +90,7 @@ svg {
   display: flex;
   flex-direction: column;
   padding: 6rem 2rem 2rem;
-  gap: 2rem;
+  gap: 1rem;
 
   text-align: center;
 
@@ -174,6 +180,8 @@ svg {
 }
 
 .separator {
+  display: flex;
+  margin: .5rem 0;
   width: 100%;
   border: 2px dashed var(--clear);
 }

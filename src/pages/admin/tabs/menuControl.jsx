@@ -97,7 +97,6 @@ function MenuControl({ token, loading }) {
   const _handleSubmit = async (e, forceData = {}) => {
     e.preventDefault();
 
-    //Basic verification before trying backend comunication
     if (form.name === "") {
       setPopupMessage({
         message: "Preencha o formulário com um nome válido",
@@ -106,7 +105,6 @@ function MenuControl({ token, loading }) {
       return;
     }
 
-    //if there is not a selected category or forced data, form will be the category itself
     const categoryData = forceData.name
       ? forceData
       : selectedCategory
@@ -115,7 +113,6 @@ function MenuControl({ token, loading }) {
     let message = "Categoria atualizada com sucesso";
 
     if (type === "item") {
-      //ingredients treatment
       const ingredients = Array.isArray(form.ingredients)
         ? form.ingredients
         : form.ingredients
@@ -128,7 +125,6 @@ function MenuControl({ token, loading }) {
         ingredients: ingredients,
       };
 
-      //verify if item already exists
       if (form.id) {
         categoryData.items = categoryData.items.map((item) =>
           item.id === form.id ? itemData : item
@@ -168,7 +164,6 @@ function MenuControl({ token, loading }) {
       }
     }
 
-    //if it has ID the category exists and will be updates
     if (categoryData.id) {
       try {
         loading(true);
@@ -201,7 +196,6 @@ function MenuControl({ token, loading }) {
         loading(false);
       }
     } else {
-      //if it doesn't have ID it will be created
       try {
         loading(true);
         const response = await api.post("/menu", form, {
@@ -244,7 +238,6 @@ function MenuControl({ token, loading }) {
     itemId = null,
     additionName = null,
   }) => {
-    //if there is only categoryId, it will be deleted
     if (categoryId && !itemId && !additionName) {
       try {
         await api.delete(`/menu?id=${categoryId}`, {
@@ -269,7 +262,6 @@ function MenuControl({ token, loading }) {
         loading(false);
       }
     }
-    //If there is categoryId and ItemID, it will send an update with the item carrying "deleted" status
     if (categoryId && itemId && !additionName) {
       const categoryData = categories.find(
         (category) => category.id === categoryId

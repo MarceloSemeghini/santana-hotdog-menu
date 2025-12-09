@@ -1,6 +1,6 @@
 import { IoMdCloseCircle } from "react-icons/io";
 import Header from "../components/header";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api, { formatString } from "../utils";
 import Popup from "../components/popup";
 
@@ -11,6 +11,18 @@ function Checkout({ cart, setCart, loading }) {
     items: { products: [], note: "" },
   });
   const [order, setOrder] = useState({});
+
+  const [orderType, setOrderType] = useState("local");
+
+  const canProceed = useMemo(() => {
+    if (form.name.trim().length >= 2) {
+      if (orderType === "local") {
+        return true;
+      } else {
+      }
+    }
+    return false;
+  }, [form.name]);
 
   const removeFromCart = (indexToRemove) => {
     loading(true);
@@ -51,6 +63,28 @@ function Checkout({ cart, setCart, loading }) {
       window.location.href = "/";
     }
   }, [cart]);
+
+  const handleSearchPostalCode = async (postalCode) => {
+    if (postalCode?.length !== 8) {
+      return;
+    }
+    try {
+      const data = await fetch(`https://viacep.com.br/ws/${postalCode}/json/`);
+
+      const response = await data.json();
+
+      setForm({
+        ...form,
+        address: {
+          ...form.address,
+          district: response.bairro,
+          address: response.logradouro,
+        },
+      });
+    } catch (error) {
+      setAlertMessage("Erro ao buscar o CEP");
+    }
+  };
 
   return (
     <div className="page" id="checkout">
@@ -118,6 +152,99 @@ function Checkout({ cart, setCart, loading }) {
               </div>
             </div>
             <span className="separator" />
+            <div className="order-type">
+              <button
+                className={orderType === "local" ? "active" : ""}
+                onClick={() =>
+                  !(orderType === "local") && setOrderType("local")
+                }
+              >
+                Irei retirar no local
+              </button>
+              <button
+                className={orderType === "delivery" ? "active" : ""}
+                onClick={() =>
+                  !(orderType === "delivery") && setOrderType("delivery")
+                }
+              >
+                Quero entrega em domicílio
+              </button>
+            </div>
+            {orderType === "delivery" && (
+              <>
+                <span className="separator" />
+                <h2 className="title">Endereço de Entrega</h2>
+                <div className="card vertical">
+                  <input
+                    type="text"
+                    placeholder="Digite o CEP"
+                    value={form.address?.postalCode || ""}
+                    onChange={(e) => {
+                      setForm({
+                        ...form,
+                        address: {
+                          ...form.address,
+                          postalCode: e.target.value,
+                        },
+                      });
+                    }}
+                    onBlur={() =>
+                      handleSearchPostalCode(form.address?.postalCode)
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nome do Bairro"
+                    disabled
+                    value={form.address?.district || ""}
+                    onChange={(e) => {
+                      setForm({
+                        ...form,
+                        address: { ...form.address, district: e.target.value },
+                      });
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nome da Rua"
+                    disabled
+                    value={form.address?.address || ""}
+                    onChange={(e) => {
+                      setForm({
+                        ...form,
+                        address: { ...form.address, address: e.target.value },
+                      });
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Número da Residência"
+                    value={form.address?.number || ""}
+                    onChange={(e) => {
+                      setForm({
+                        ...form,
+                        address: { ...form.address, number: e.target.value },
+                      });
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Complemento do endereço"
+                    value={form.address?.complement || ""}
+                    onChange={(e) => {
+                      setForm({
+                        ...form,
+                        address: {
+                          ...form.address,
+                          complement: e.target.value,
+                        },
+                      });
+                    }}
+                  />
+                </div>
+              </>
+            )}
+            <span className="separator" />
             <div className="section">
               <h2 className="title">Observações</h2>
               <div className="card vertical">
@@ -158,7 +285,9 @@ function Checkout({ cart, setCart, loading }) {
                 )
                 .toFixed(2)}
             </span>
-            <button onClick={() => _finalize()}>Finalizar</button>
+            <button onClick={() => _finalize()} disabled={!canProceed}>
+              Finalizar
+            </button>
           </div>
         </>
       )}

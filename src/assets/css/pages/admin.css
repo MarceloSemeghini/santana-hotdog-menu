@@ -6,7 +6,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 2rem;
+    gap: .5rem;
   }
 
   .list {
@@ -25,6 +25,47 @@
     }
   }
 
+  .order-type-selection {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 1rem;
+
+    .local-orders,
+    .delivery-orders {
+      width: 3.5rem;
+      height: 2rem;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--gray);
+      font-weight: 800;
+      font-size: 24px;
+
+      border: 2px solid;
+      border-radius: .5rem;
+      padding: .2rem .5rem;
+
+      transition: all .3s ease-in-out;
+
+      svg {
+        color: var(--gray);
+      }
+
+      &.active {
+        color: var(--primary);
+
+        svg {
+          color: var(--primary);
+        }
+      }
+    }
+  }
+
   .order {
     width: 100%;
     .card-content {
@@ -33,16 +74,34 @@
         border: 2px dashed var(--secondary-light);
       }
     }
-    .finish {
-      background-color: transparent;
-      border: transparent;
-      width: 100%;
+    .order-actions {
       display: flex;
-      justify-content: flex-end;
-      padding: 0;
-      svg {
-        background-color: var(--primary);
-        border-radius: 100%;
+      padding: 0.5rem;
+      gap: 5rem;
+      .finish,
+      .cancel {
+        background-color: transparent;
+        border: transparent;
+        width: 100%;
+        display: flex;
+        padding: 0;
+        svg {
+          border-radius: 100%;
+        }
+      }
+      .cancel {
+        justify-content: flex-start;
+
+        svg {
+          background-color: var(--alert);
+        }
+      }
+      .finish {
+        justify-content: flex-end;
+
+        svg {
+          background-color: var(--success);
+        }
       }
     }
   }

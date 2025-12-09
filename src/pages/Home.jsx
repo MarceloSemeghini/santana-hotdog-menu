@@ -106,7 +106,7 @@ function Home({ cart, setCart, loading }) {
             (category) =>
               category.items.length > 0 && (
                 <div className="section" key={category.id}>
-                  <h2 className="title">{category.name}</h2>
+                  <h2 className="title" style={{textAlign: "end"}}>{category.name}</h2>
                   {category.items.map((item) => (
                     <div
                       className={`card ${

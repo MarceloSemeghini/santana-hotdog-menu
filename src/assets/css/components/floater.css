@@ -17,7 +17,7 @@
   transition: 0.2s ease-in-out;
 
   &.hidden {
-    transform: translateY(100%); /* Esconde o footer */
+    transform: translateY(100%); 
   }
 
   &.control {
@@ -26,11 +26,11 @@
       border: none;
       padding: 0;
       svg {
-        color: var(--primary);
+        color: var(--gray);
       }
-      &.pressed {
+      &.active {
         svg {
-          color: var(--gray);
+          color: var(--primary);
         }
       }
     }

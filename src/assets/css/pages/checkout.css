@@ -3,7 +3,7 @@
 
   .card {
     background-color: var(--secondary-light);
-    border-color: var(--secondary-dark);
+    border: 1px solid var(--secondary-dark);
     border-radius: 0.5rem;
   }
 
@@ -19,13 +19,29 @@
       font-size: 20px;
     }
   }
+  .order-type {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: .5rem;
+
+    button {
+      background-color: var(--gray);
+      border: 2px solid var(--clear);
+
+      &.active {
+        background-color: var(--primary);
+      }
+    }
+  }
 }
 .action-row {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 1rem;
+  gap: .5rem;
 
   button {
     border-radius: 0.5rem;
