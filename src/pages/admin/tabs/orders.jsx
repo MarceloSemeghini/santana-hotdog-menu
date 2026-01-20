@@ -24,7 +24,7 @@ function Orders({ token, user, loading }) {
 
   const fetchOrders = async () => {
     try {
-      const response = await api.get("/orders", {
+      const response = await api.get("/orders?include_items=true", {
         params: { status: "active" },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -115,7 +115,7 @@ function Orders({ token, user, loading }) {
     try {
       loading(true);
       const response = await api.put("/orders", { id: orderId, status });
-      if (response.status === "success") {
+      if (response.data.status === "success") {
         setOrders((prev) => prev.filter((o) => o.id !== orderId));
       } else {
         setAlertMessage(
@@ -209,6 +209,11 @@ function Orders({ token, user, loading }) {
                 </div>
               </>
             )}
+
+            <span className="separator" />
+            <p className="total">
+              <b>Total: R$ {order?.total_value.replace(".", ",")}</b> 
+            </p>
 
             <span className="separator" />
             <div className="order-actions">

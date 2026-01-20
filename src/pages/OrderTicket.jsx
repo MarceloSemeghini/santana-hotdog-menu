@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import api from "../utils";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Popup from "../components/popup";
 import Header from "../components/header";
 
@@ -10,29 +10,22 @@ function OrderTicket({}) {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
 
-  const total = useMemo(() => {
-    if (!order || !order.items) return "R$ 0,00";
-    const sum = order?.items?.products?.reduce(
-      (acc, item) =>
-        item.quantity
-          ? acc + parseFloat(item.price) * item.quantity
-          : acc + parseFloat(item.price),
-      0
-    );
-    return `R$ ${sum.toFixed(2).replace(".", ",")}`;
-  }, [order]);
-
   const fetchOrders = async () => {
     if (!orderId) return;
     try {
       const response = await api.get("/orders", {
-        params: { id: orderId },
+        params: { id: orderId, status: "active" },
       });
 
-      setOrder(response.data.data[0]);
+      if (response.data.data.length > 0) {
+        setOrder(response.data.data[0]);
+      } else {
+        window.location.href = "/";
+      }
+
     } catch (error) {
       setAlertMessage(
-        error.response?.data?.message || "Erro ao buscar o pedido"
+        error.response?.data?.message || "Erro ao buscar o pedido",
       );
     }
   };
@@ -51,9 +44,14 @@ function OrderTicket({}) {
           <span className="separator" />
           <p>{order?.name}</p>
           <span className="separator" />
-          <p>
-            Valor a pagar: <span style={{ whiteSpace: "nowrap" }}>{total}</span>{" "}
-          </p>
+          {order?.total_value && (
+            <p>
+              Valor a pagar:{" "}
+              <span style={{ whiteSpace: "nowrap" }}>
+                <b>R${order?.total_value.replace(".", ",")}</b>
+              </span>{" "}
+            </p>
+          )}
           <p className="cancel">
             Se deseja cancelar o seu pedido, por favor, dirija-se ao balcão.
           </p>

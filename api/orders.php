@@ -39,16 +39,23 @@ function handlePost()
     $id = generate_id();
     $name = $body["name"];
     $orderData = $body["items"];
+    $note = $body["note"] ?? null;
 
     $address = isset($body["address"]) ? json_encode($body["address"]) : null;
 
-    $total = 0;
+    $totalValue = 0;
+
     if (!empty($orderData['products'])) {
         foreach ($orderData['products'] as $item) {
-            $price = isset($item['totalPrice']) ? floatval($item['totalPrice']) : floatval($item['price']);
-            $total += $price;
+            $price = isset($item['totalPrice'])
+                ? floatval($item['totalPrice'])
+                : floatval($item['price']);
+
+            $totalValue += $price;
         }
     }
+
+    $totalValue = round($totalValue, 2);
 
     $jsonOrder = is_string($orderData) ? $orderData : json_encode($orderData);
 
@@ -67,20 +74,33 @@ function handlePost()
     $stmt->close();
 
     $newOrderCode = ($maxOrderCode === null) ? 1 : $maxOrderCode + 1;
-
     $currentDate = date("Y-m-d H:i:s");
 
     $conn->begin_transaction();
 
     try {
         $stmt = $conn->prepare("
-            INSERT INTO orders (id, name, order_data, order_code, created_at, work_date, address)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO orders 
+                (id, name, order_data, order_code, total_value, note, created_at, work_date, address)
+            VALUES 
+                (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->bind_param("sssisss", $id, $name, $jsonOrder, $newOrderCode, $currentDate, $workDate, $address);
+
+        $stmt->bind_param(
+            "sssiddsss",
+            $id,
+            $name,
+            $jsonOrder,
+            $newOrderCode,
+            $totalValue,
+            $note,
+            $currentDate,
+            $workDate,
+            $address
+        );
+
         $stmt->execute();
         $stmt->close();
-
         $conn->commit();
 
         echo json_encode([
@@ -89,7 +109,7 @@ function handlePost()
                 "id" => $id,
                 "name" => $name,
                 "order_code" => $newOrderCode,
-                "total" => number_format($total, 2, '.', '')
+                "total_value" => number_format($totalValue, 2, '.', '')
             ]
         ]);
     } catch (Exception $e) {
@@ -106,12 +126,21 @@ function handleGet()
 {
     global $conn;
 
+    $includeItems = filter_var($_GET['include_items'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
     $start_date = $_GET['start_date'] ?? null;
     $end_date = $_GET['end_date'] ?? null;
     $status = $_GET['status'] ?? null;
     $id = $_GET['id'] ?? null;
 
-    $query = "SELECT * FROM orders";
+    $selectFields = "id, name, order_code, total_value, status, created_at, work_date, note, address";
+
+    if ($includeItems) {
+        $selectFields .= ", order_data";
+    }
+
+    $query = "SELECT $selectFields FROM orders";
+
     $params = [];
     $types = [];
 
@@ -121,27 +150,30 @@ function handleGet()
         $conditions[] = "id = ?";
         $params[] = $id;
         $types[] = "s";
-    } else {
-        authenticate();
-
-        if ($start_date && $end_date) {
-            $conditions[] = "work_date BETWEEN ? AND ?";
-            $params[] = $start_date;
-            $params[] = $end_date;
-            $types[] = "s";
-            $types[] = "s";
-        } elseif ($start_date) {
-            $conditions[] = "work_date >= ?";
-            $params[] = $start_date;
-            $types[] = "s";
-        }
-
-        if ($status) {
-            $conditions[] = "status = ?";
-            $params[] = $status;
-            $types[] = "s";
-        }
     }
+
+    if (!$id) {
+        authenticate();
+    }
+
+    if ($start_date && $end_date) {
+        $conditions[] = "work_date BETWEEN ? AND ?";
+        $params[] = $start_date;
+        $params[] = $end_date;
+        $types[] = "s";
+        $types[] = "s";
+    } elseif ($start_date) {
+        $conditions[] = "work_date >= ?";
+        $params[] = $start_date;
+        $types[] = "s";
+    }
+
+    if ($status) {
+        $conditions[] = "status = ?";
+        $params[] = $status;
+        $types[] = "s";
+    }
+
 
     if ($conditions) {
         $query .= " WHERE " . implode(" AND ", $conditions);
@@ -160,16 +192,23 @@ function handleGet()
 
     $orders = [];
     while ($row = $result->fetch_assoc()) {
-        $orders[] = [
+        $order = [
             "id" => $row['id'],
             "name" => $row['name'],
-            "items" => json_decode($row['order_data'], true),
             "order_code" => $row['order_code'],
             "status" => $row['status'],
+            "total_value" => $row['total_value'],
+            "note" => $row['note'],
             "created_at" => $row['created_at'],
             "work_date" => $row['work_date'],
             "address" => json_decode($row['address'], true)
         ];
+
+        if ($includeItems) {
+            $order["items"] = json_decode($row['order_data'], true);
+        }
+
+        $orders[] = $order;
     }
 
     $result->free();
@@ -197,9 +236,9 @@ function handleUpdate()
     $id = $body["id"];
     $status = $body["status"];
 
-    try {
-        $conn->commit();
+    $conn->begin_transaction();
 
+    try {
         $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
         $stmt->bind_param("ss", $status, $id);
         $stmt->execute();
