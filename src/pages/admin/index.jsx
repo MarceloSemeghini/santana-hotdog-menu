@@ -8,8 +8,9 @@ import { PiNewspaperClippingFill } from "react-icons/pi";
 import { MdMenuBook } from "react-icons/md";
 import { TbGraphFilled } from "react-icons/tb";
 import Floater from "../../components/floater";
-import { FaPause, FaPlay, FaStop } from "react-icons/fa6";
+import { FaPause, FaPlay, FaStop, FaTrash } from "react-icons/fa6";
 import Popup from "../../components/popup";
+import TrashBin from "../../components/trashBin";
 
 function Admin({ loading }) {
   const [alertMessage, setAlertMessage] = useState("");
@@ -18,6 +19,7 @@ function Admin({ loading }) {
   const [activeTab, setActiveTab] = useState("orders");
   const [user, setUser] = useState({});
   const [status, setStatus] = useState(false);
+  const [openBin, setOpenBin] = useState(false)
 
   useEffect(() => {
     if (user.userId) {
@@ -28,7 +30,7 @@ function Admin({ loading }) {
         });
       } catch (error) {
         setAlertMessage(
-          error.response?.data?.message || "Erro ao buscar dados"
+          error.response?.data?.message || "Erro ao buscar dados",
         );
       } finally {
         loading(false);
@@ -47,12 +49,12 @@ function Admin({ loading }) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       setStatus(response.data.data);
     } catch (error) {
       setAlertMessage(
-        error.response?.data?.message || "Erro ao atualizar status:"
+        error.response?.data?.message || "Erro ao atualizar status:",
       );
     } finally {
       loading(false);
@@ -74,7 +76,7 @@ function Admin({ loading }) {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
               },
-            }
+            },
           );
           if (!response.data.valid) {
             localStorage.removeItem("authToken");
@@ -85,7 +87,7 @@ function Admin({ loading }) {
         } catch (error) {
           setAlertMessage(
             error.response?.data?.message || "Erro ao verificar token:",
-            error
+            error,
           );
           localStorage.removeItem("authToken");
           window.location.href = "/auth";
@@ -125,8 +127,19 @@ function Admin({ loading }) {
       )}
       {activeTab === "menu" && <MenuControl token={token} loading={loading} />}
       {activeTab === "graph" && <Graph token={token} loading={loading} />}
-
+      <TrashBin
+        open={openBin}
+        close={() => setOpenBin(false)}
+        token={token}
+        setAlertMessage={(message) => setAlertMessage(message)}
+        loading={loading}
+      />
       <Floater className="control">
+        {activeTab === "orders" && (
+          <div className="bin-toggle" onClick={() => setOpenBin(true)}>
+            <FaTrash size={"2rem"} />
+          </div>
+        )}
         <button
           disabled={status === "inactive"}
           onClick={() => switchStatus("inactive")}

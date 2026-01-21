@@ -38,12 +38,19 @@ function Graph({ token, loading }) {
     }
   };
 
+  const formatDateBR = (dateString) => {
+    if (!dateString) return "";
+
+    const date = new Date(dateString);
+    return date.toLocaleDateString("pt-BR");
+  };
+
   return (
     <>
       <div className="container" id="graph">
         <b className="title">Painel de Desempenho</b>
 
-        <div className="search-wrapper">
+        <div className="search-wrapper card">
           <div className="date-select-wrapper">
             <div>
               <span>Data inicial</span>
@@ -70,32 +77,43 @@ function Graph({ token, loading }) {
           />
         </div>
 
-        <div>
-          {analyticsData.total !== undefined && (
-            <div className="analytics-data">
-              <div className="data-item">
-                <p>Total de do período<b>{analyticsData.total}</b></p>
-                
+        {analyticsData.total !== undefined && (
+          <>
+            {analyticsData.weekly.length > 1 && (
+              <div className="data-item card">
+                <p>
+                  Total de do período:{" "}
+                  <b>R${analyticsData?.total.toFixed(2).replace(".", ",")}</b>
+                </p>
               </div>
-              <br/>
-              {analyticsData?.weekly &&
-                analyticsData.weekly.map((week) => (
-                  <>
-                    <span>Semana {week.week}<b>{week?.total}</b></span>
-                    
+            )}
+            {analyticsData?.weekly &&
+              analyticsData.weekly.map((week) => (
+                <div className="card">
+                  <div className="card-content">
+                    <span className="title">
+                      Semana {analyticsData.weekly.length > 1 && week.week}
+                    </span>
+                    <p>
+                      Total da Semana:
+                      <b>R${week?.total.toFixed(2).replace(".", ",")}</b>
+                    </p>
+
                     {week?.days &&
                       week?.days.map((day) => (
-                        <p>
-                          {day?.date}
-                          <b>{day?.total}</b>
-                        </p>
+                        <>
+                          <span className="separator" />
+                          <p>
+                            {formatDateBR(day?.date)}:
+                            <b>R${day?.total.toFixed(2).replace(".", ",")}</b>
+                          </p>
+                        </>
                       ))}
-                      <br/>
-                  </>
-                ))}
-            </div>
-          )}
-        </div>
+                  </div>
+                </div>
+              ))}
+          </>
+        )}
       </div>
 
       <Popup

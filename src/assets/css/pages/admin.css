@@ -152,49 +152,88 @@
   }
 
   #graph {
-    input[type="date"] {
-      background: var(--primary-light);
-      color: var(--font-secondary);
-      border-color: var(--primary-dark);
-      border-radius: 8px;
-      padding: 8px;
-    }
-
     b.title {
       margin: auto;
       max-width: 60vw;
     }
 
     .search-wrapper {
+      width: fit-content;
+      margin: auto;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
+      justify-content: center;
       gap: 1rem;
 
       .date-select-wrapper {
         display: flex;
+        flex-wrap: wrap;
         flex-direction: column;
         gap: 1rem;
+
+        input[type="date"] {
+          background: var(--secondary-light);
+          color: var(--font-secondary);
+          border-color: var(--secondary);
+          border-radius: 0.5rem;
+          padding: 0.2rem;
+        }
 
         div {
           width: 100%;
           display: flex;
+          flex-wrap: wrap;
           align-items: center;
-          justify-content: flex-start;
+          justify-content: center;
           gap: 1rem;
 
           color: var(--font-secondary);
-          font-size: 20px;
-          font-weight: 600;
+          font-size: 16px;
+          font-weight: 400;
+
+          span {
+            width: 6rem;
+          }
         }
       }
 
-      .inactive {
-        color: var(--gray);
-        transition: all 0.2s ease-in-out;
+      svg {
+        min-width: 0.5rem;
+        max-width: 1.5rem;
+        &.inactive {
+          color: var(--gray);
+          transition: all 0.2s ease-in-out;
+        }
+        &.active {
+          color: var(--primary);
+          transition: all 0.2s ease-in-out;
+        }
       }
-      .active {
+    }
+
+    .card {
+      .card-content {
+        width: 100%;
+
+        .separator {
+          border: unset;
+          border-top: 4px dashed var(--secondary-light);
+        }
+      }
+      .title {
+        margin: 0 auto 1rem auto;
+      }
+      p {
+        color: var(--font-secondary);
+        font-size: 16px;
+        font-weight: 400;
+      }
+      b {
+        margin: 0 1rem;
+        font-size: 20px;
+        font-weight: 600;
         color: var(--primary);
-        transition: all 0.2s ease-in-out;
       }
     }
   }
