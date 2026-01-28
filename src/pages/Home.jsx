@@ -2,13 +2,16 @@ import { useEffect, useState } from "react";
 import Header from "../components/header";
 import api, { formatString } from "../utils";
 import Floater from "../components/floater";
-import { IoIosArrowForward, IoMdAdd } from "react-icons/io";
+import { IoMdAdd } from "react-icons/io";
 import Popup from "../components/popup";
 import Drawer from "../components/drawer";
 import { LuShoppingCart } from "react-icons/lu";
 import { FaArrowRight } from "react-icons/fa6";
+import { IoClose, IoMenu } from "react-icons/io5";
 
 function Home({ cart, setCart, loading }) {
+  const [active, setActive] = useState(false);
+
   const [alertMessage, setAlertMessage] = useState("");
 
   const [categories, setCategories] = useState([]);
@@ -80,9 +83,12 @@ function Home({ cart, setCart, loading }) {
 
   return (
     <div className="page" id="home">
+      <Drawer categories={categories} active={active} close={() => setActive(false)}/>
       <Header>
         {categories && categories?.length > 1 && (
-          <Drawer categories={categories} />
+          <div className="menu-toggle" onClick={() => setActive(!active)}>
+            <IoMenu size={"3rem"} />
+          </div>
         )}
       </Header>
       <div className="container">

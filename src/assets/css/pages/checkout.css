@@ -1,12 +1,4 @@
 #checkout {
-  background-color: var(--secondary);
-
-  .card {
-    background-color: var(--secondary-light);
-    border: 1px solid var(--secondary-dark);
-    border-radius: 0.5rem;
-  }
-
   input,
   textarea {
     background-color: var(--clear);
@@ -26,7 +18,6 @@
     gap: .5rem;
 
     button {
-      background-color: var(--gray);
       border: 2px solid var(--clear);
     }
   }

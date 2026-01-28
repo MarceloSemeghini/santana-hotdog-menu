@@ -49,6 +49,8 @@ button {
   font-weight: 600;
   font-size: 14px;
 
+  transition: color 0.3s ease-in-out;
+
   &.invert {
     background-color: transparent;
     border: 2px solid var(--primary);
@@ -73,12 +75,19 @@ button {
     background-color: var(--gray);
     border: 2px solid var(--gray);
   }
+
+  &.active {
+    background-color: var(--primary);
+  }
+
+  &.inactive {
+    background-color: var(--gray);
+  }
 }
 
 svg {
   color: var(--primary);
   transition: color 0.3s ease-in-out;
-
   &.active {
     color: var(--primary);
   }
@@ -110,6 +119,8 @@ svg {
 }
 
 .card {
+  animation: fromBelow 0.4s ease-out forwards;
+
   background-color: var(--clear);
   display: flex;
   flex-direction: row;

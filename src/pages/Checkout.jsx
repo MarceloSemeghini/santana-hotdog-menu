@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import api, { formatString } from "../utils";
 import Popup from "../components/popup";
 import Modal from "../components/modal";
+import { IoLocationOutline } from "react-icons/io5";
 
 function Checkout({ cart, setCart, loading }) {
   const [alertMessage, setAlertMessage] = useState("");
@@ -193,13 +194,14 @@ function Checkout({ cart, setCart, loading }) {
           <span className="separator" />
           <div className="order-type">
             <button
-              className={orderType === "local" ? "active" : ""}
+              className={orderType === "local" ? "active" : "inactive"}
               onClick={() => !(orderType === "local") && setOrderType("local")}
             >
+              <IoLocationOutline size={"1rem"} />
               Irei retirar no local
             </button>
             <button
-              className={orderType === "delivery" ? "active" : ""}
+              className={orderType === "delivery" ? "active" : "inactive"}
               onClick={() =>
                 !(orderType === "delivery") && setOrderType("delivery")
               }

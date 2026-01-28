@@ -2,6 +2,7 @@
 
 @import "./default/color.css";
 @import "./default/text.css";
+@import "./default/animations.css";
 
 @import "./pages/admin.css";
 @import "./pages/auth.css";
@@ -30,5 +31,5 @@
 body {
   min-height: 100vh;
 
-  background-image: linear-gradient(60deg, var(--clear), var(--clear), var(--secondary))
+  background-image: linear-gradient(60deg, var(--clear), var(--secondary))
 }

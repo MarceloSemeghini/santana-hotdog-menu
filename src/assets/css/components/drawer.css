@@ -1,3 +1,48 @@
+#drawer:not(.show):not(.hidden) {
+  .drawer-menu,
+  .overlay {
+    animation: none !important;
+  }
+}
+
+#drawer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+
+  .drawer-menu {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  .overlay {
+    opacity: 0;
+  }
+
+  &.show {
+    pointer-events: auto;
+
+    .drawer-menu {
+      animation: fromRight 0.4s ease-out forwards;
+    }
+
+    .overlay {
+      animation: materialize 0.4s ease-out forwards;
+    }
+  }
+
+  &.hidden {
+    .drawer-menu {
+      animation: toRight 0.4s ease-out forwards;
+    }
+
+    .overlay {
+      animation: dematerialize 0.4s ease-out forwards;
+    }
+  }
+}
+
 .menu-toggle {
   width: 100%;
   display: flex;
@@ -14,37 +59,36 @@
   left: 0;
   right: 0;
   bottom: 0;
-  top: 4rem;
-  z-index: -1;
+  top: 0;
 }
 .drawer-menu {
   background-color: var(--secondary-light);
   position: fixed;
-  top: 4rem;
+  top: 0;
   right: 0;
-  height: calc(100% - 4rem);
+  height: 100%;
 
   .menu-options {
     list-style-type: none;
     padding: 1rem;
 
     li {
-        border-top: 2px dashed var(--secondary);
-        padding: .5rem;
+      border-top: 2px dashed var(--secondary);
+      padding: 0.5rem;
 
-        font-size: 20px;
-        font-weight: 600;
-        color: var(--font-primary);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--font-primary);
 
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
 
-        &:first-of-type {
-            margin-top: 0;
-            border: unset;
-        }
+      &:first-of-type {
+        margin-top: 0;
+        border: unset;
+      }
     }
   }
 }
