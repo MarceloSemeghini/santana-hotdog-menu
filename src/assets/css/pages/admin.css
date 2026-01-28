@@ -70,9 +70,6 @@
     width: 100%;
     .card-content {
       width: 100%;
-      .separator {
-        border: 2px dashed var(--secondary-light);
-      }
     }
     .order-address {
       display: flex;
@@ -215,11 +212,6 @@
     .card {
       .card-content {
         width: 100%;
-
-        .separator {
-          border: unset;
-          border-top: 4px dashed var(--secondary-light);
-        }
       }
       .title {
         margin: 0 auto 1rem auto;

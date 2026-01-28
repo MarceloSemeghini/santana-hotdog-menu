@@ -2,6 +2,22 @@
   color: var(--font-primary);
   font-size: 24px;
   font-weight: 800;
+  position: relative;
+  width: fit-content;
+  margin: 1rem auto;
+
+  &:before {
+    content: "";
+    position: absolute;
+    border-radius: 1rem;
+    margin: 0 .5rem;
+    height: 0.3rem;
+    transform: translateY(50%);
+    top: 100%;
+    right: 0;
+    left: 0;
+    background-color: var(--primary);
+  }
 }
 
 .subtitle {

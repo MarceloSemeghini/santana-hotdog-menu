@@ -1,10 +1,10 @@
-import { IoMdCloseCircle } from "react-icons/io";
 import Header from "../components/header";
 import { useEffect, useMemo, useState } from "react";
 import api, { formatString } from "../utils";
 import Popup from "../components/popup";
 import Modal from "../components/modal";
-import { IoLocationOutline } from "react-icons/io5";
+import { IoClose, IoLocationOutline } from "react-icons/io5";
+import { MdDeliveryDining } from "react-icons/md";
 
 function Checkout({ cart, setCart, loading }) {
   const [alertMessage, setAlertMessage] = useState("");
@@ -59,7 +59,7 @@ function Checkout({ cart, setCart, loading }) {
 
     try {
       const response = await fetch(
-        `https://viacep.com.br/ws/${postalCode}/json/`
+        `https://viacep.com.br/ws/${postalCode}/json/`,
       );
       const data = await response.json();
 
@@ -132,7 +132,7 @@ function Checkout({ cart, setCart, loading }) {
         });
     } catch (error) {
       setAlertMessage(
-        error.response?.data?.message || "Erro ao finalizar pedido"
+        error.response?.data?.message || "Erro ao finalizar pedido",
       );
     }
   };
@@ -162,13 +162,16 @@ function Checkout({ cart, setCart, loading }) {
                   )}
                 </div>
                 <div className="card-actions">
-                  <span className="price">
-                    {item.totalPrice ? item.totalPrice : item.price}
-                  </span>
-                  <IoMdCloseCircle
+                  <IoClose
                     size={"2rem"}
                     onClick={() => removeFromCart(index)}
                   />
+                  <span className="price" style={{ whiteSpace: "nowrap" }}>
+                    R${" "}
+                    {parseFloat(item.totalPrice ? item.totalPrice : item.price)
+                      .toFixed(2)
+                      .replace(".", ",")}
+                  </span>
                 </div>
               </div>
             ))}
@@ -176,7 +179,7 @@ function Checkout({ cart, setCart, loading }) {
           <span className="separator" />
           <div className="section">
             <h2 className="title">Nome</h2>
-            <div className="card vertical">
+            <div className="client-info-section">
               <input
                 type="text"
                 placeholder="Digite o seu nome"
@@ -184,7 +187,7 @@ function Checkout({ cart, setCart, loading }) {
                 onChange={(e) => {
                   const onlyLetters = e.target.value.replace(
                     /[^A-Za-zÀ-ÿ\s]/g,
-                    ""
+                    "",
                   );
                   setForm({ ...form, name: onlyLetters });
                 }}
@@ -197,7 +200,7 @@ function Checkout({ cart, setCart, loading }) {
               className={orderType === "local" ? "active" : "inactive"}
               onClick={() => !(orderType === "local") && setOrderType("local")}
             >
-              <IoLocationOutline size={"1rem"} />
+              <IoLocationOutline size={"1.5rem"} />
               Irei retirar no local
             </button>
             <button
@@ -206,6 +209,7 @@ function Checkout({ cart, setCart, loading }) {
                 !(orderType === "delivery") && setOrderType("delivery")
               }
             >
+              <MdDeliveryDining size={"1.5rem"} />
               Quero entrega em domicílio
             </button>
           </div>
@@ -214,7 +218,7 @@ function Checkout({ cart, setCart, loading }) {
             <>
               <span className="separator" />
               <h2 className="title">Endereço de Entrega</h2>
-              <div className="card vertical">
+              <div className="client-info-section">
                 <input
                   type="text"
                   placeholder="Digite o CEP"
@@ -290,21 +294,19 @@ function Checkout({ cart, setCart, loading }) {
           <span className="separator" />
           <div className="section">
             <h2 className="title">Observações</h2>
-            <div className="card vertical">
-              <div className="card-content">
-                <textarea
-                  rows="4"
-                  cols="50"
-                  placeholder="Escreva aqui observações que gostaria de deixar ao pedido."
-                  value={form.items.note}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      items: { ...form.items, note: e.target.value },
-                    })
-                  }
-                />
-              </div>
+            <div className="client-info-section">
+              <textarea
+                rows="4"
+                cols="50"
+                placeholder="Escreva aqui observações que gostaria de deixar ao pedido."
+                value={form.items.note}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    items: { ...form.items, note: e.target.value },
+                  })
+                }
+              />
             </div>
           </div>
         </div>
@@ -315,22 +317,27 @@ function Checkout({ cart, setCart, loading }) {
           >
             Voltar
           </button>
-          <span className="price">
-            Total: R$
-            {cart
-              .reduce(
-                (accumulator, item) =>
-                  accumulator +
-                  (item.totalPrice
-                    ? parseFloat(item.totalPrice)
-                    : parseFloat(item.price)),
-                0
-              )
-              .toFixed(2)}
-          </span>
-          <button onClick={() => _finalize()} disabled={!canProceed}>
-            Finalizar
-          </button>
+          <div className="total-wrapper">
+            <span className="price">
+              <p>Total:</p>
+              <p className="value">
+                R$
+                {cart
+                  .reduce(
+                    (accumulator, item) =>
+                      accumulator +
+                      (item.totalPrice
+                        ? parseFloat(item.totalPrice)
+                        : parseFloat(item.price)),
+                    0,
+                  )
+                  .toFixed(2)}
+              </p>
+            </span>
+            <button onClick={() => _finalize()} disabled={!canProceed}>
+              Finalizar
+            </button>
+          </div>
         </div>
       </>
       <Modal active={openModal} close={() => setOpenModal(false)}>

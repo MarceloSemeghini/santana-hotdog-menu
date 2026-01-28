@@ -1,36 +1,75 @@
 #checkout {
+  .client-info-section {
+    display: flex;
+    width: 100%;
+  }
   input,
   textarea {
-    background-color: var(--clear);
+    width: 100%;
+    border: 2px solid var(--gray);
+    border-radius: .5rem;
+    background-color: transparent;
+    
+    color: var(--font-primary);
+    font-size: 14px;
+    font-weight: 500;
+    padding: .8rem .5rem;
   }
   .action-row {
     background-color: var(--secondary-light);
     box-shadow: 0px 0px 5px var(--secondary-dark);
-
-    button {
-      font-size: 20px;
-    }
   }
   .order-type {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: .5rem;
+    gap: 0.5rem;
 
     button {
-      border: 2px solid var(--clear);
+      transition: all ease-in-out 0.3s;
+
+      &.active {
+        border: 2px solid var(--primary);
+      }
+      &.inactive {
+        border: 2px solid var(--gray);
+        background-color: transparent;
+        color: var(--font-secondary);
+
+        svg {
+          color: var(--font-secondary);
+        }
+      }
+    }
+  }
+  .total-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .price {
+      display: flex;
+      flex-direction: column;
+      text-align: end;
+
+      p {
+        font-size: 14px;
+        color: var(--font-primary);
+        font-weight: 400;
+
+        &.value {
+          font-size: 20px;
+          font-weight: 800;
+        }
+      }
     }
   }
 }
 .action-row {
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  gap: .5rem;
-
-  button {
-    border-radius: 0.5rem;
-  }
+  gap: 0.5rem;
 }

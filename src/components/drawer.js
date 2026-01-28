@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { IoClose } from "react-icons/io5";
 
 function Drawer({ categories, active, close }) {
   const wrapperRef = useRef(null);
@@ -32,6 +33,10 @@ function Drawer({ categories, active, close }) {
       <div className={hasMounted ? open ? "show" : "hidden" : ""} id="drawer">
         <div className="overlay"></div>
         <div className="drawer-menu" ref={wrapperRef}>
+          <h3 className="drawer-header">
+            Menu
+            <IoClose size={"1.5rem"} onClick={() => close()}/>
+          </h3> 
           <ul className="menu-options">
             {categories.map((category) => (
               <li key={category.id}>
