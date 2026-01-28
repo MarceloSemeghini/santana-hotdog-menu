@@ -44,10 +44,10 @@ button {
   height: fit-content;
   width: fit-content;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.3rem 1rem;
   color: var(--secondary-light);
-  font-weight: 800;
-  font-size: 16px;
+  font-weight: 600;
+  font-size: 14px;
 
   &.invert {
     background-color: transparent;
@@ -77,7 +77,15 @@ button {
 
 svg {
   color: var(--primary);
-  transition: color .3s ease-in-out;
+  transition: color 0.3s ease-in-out;
+
+  &.active {
+    color: var(--primary);
+  }
+
+  &.inactive {
+    color: var(--gray);
+  }
 }
 
 .page {
@@ -108,7 +116,7 @@ svg {
   justify-content: space-between;
   gap: 1rem;
   padding: 1rem;
-  border: 2px solid var(--secondary);
+  box-shadow: 0 5px 10px var(--secondary);
   border-radius: 1rem;
 
   text-align: left;
@@ -181,7 +189,7 @@ svg {
 
 .separator {
   display: flex;
-  margin: .5rem 0;
+  margin: 0.5rem 0;
   width: 100%;
   border: 2px dashed var(--clear);
 }

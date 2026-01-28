@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import Header from "../components/header";
 import api, { formatString } from "../utils";
 import Floater from "../components/floater";
-import { IoIosArrowForward } from "react-icons/io";
+import { IoIosArrowForward, IoMdAdd } from "react-icons/io";
 import Popup from "../components/popup";
 import Drawer from "../components/drawer";
+import { LuShoppingCart } from "react-icons/lu";
+import { FaArrowRight } from "react-icons/fa6";
 
 function Home({ cart, setCart, loading }) {
   const [alertMessage, setAlertMessage] = useState("");
@@ -221,13 +223,14 @@ function Home({ cart, setCart, loading }) {
                             <div className="card-actions">
                               <span className="price">R${item.price}</span>
                               <button
+                                style={{ whiteSpace: "nowrap" }}
                                 onClick={() =>
                                   category.additions.length > 0
                                     ? setSelectedItem({ ...item, extra: [] })
                                     : addToCart(item)
                                 }
                               >
-                                Adicionar
+                                <IoMdAdd size={"1rem"} /> Adicionar
                               </button>
                             </div>
                           )}
@@ -241,21 +244,32 @@ function Home({ cart, setCart, loading }) {
       </div>
       {status !== "inactive" && (
         <Floater condition={cart.length > 0}>
-          <span className="price">
-            Total: R$
-            {cart
-              .reduce(
-                (accumulator, item) =>
-                  accumulator +
-                  (item.totalPrice
-                    ? parseFloat(item.totalPrice)
-                    : parseFloat(item.price)),
-                0,
-              )
-              .toFixed(2)}
-          </span>
+          <div className="total-wrapper">
+            <div className="bubble">
+              <LuShoppingCart size={"1rem"} />
+              <span className="cart-amount">
+                {cart.reduce((acc, item) => acc + (item.quantity ?? 1), 0)}
+              </span>
+            </div>
+            <span className="price">
+              <p>Total:</p>
+              <p className="value">
+                R$
+                {cart
+                  .reduce(
+                    (accumulator, item) =>
+                      accumulator +
+                      (item.totalPrice
+                        ? parseFloat(item.totalPrice)
+                        : parseFloat(item.price)),
+                    0,
+                  )
+                  .toFixed(2)}
+              </p>
+            </span>
+          </div>
           <button onClick={() => (window.location.href = "/checkout")}>
-            Finalizar <IoIosArrowForward size={"1rem"} />
+            Finalizar <FaArrowRight size={".85rem"} />
           </button>
         </Floater>
       )}

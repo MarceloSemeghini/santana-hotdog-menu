@@ -1,24 +1,24 @@
 .title {
-  color: var(--font-secondary);
+  color: var(--font-primary);
   font-size: 24px;
   font-weight: 800;
 }
 
 .subtitle {
-  color: var(--font-primary);
+  color: var(--font-secondary);
   font-size: 20px;
   font-weight: 800;
 }
 
 .content {
-  color: var(--font-secondary);
+  color: var(--font-primary);
   font-size: 14px;
   font-weight: 500;
 }
 
 .price {
   text-align: center;
-  color: var(--font-primary);
+  color: var(--primary);
   font-size: 20px;
   font-weight: 800;
 }

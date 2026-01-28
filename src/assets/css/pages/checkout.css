@@ -28,10 +28,6 @@
     button {
       background-color: var(--gray);
       border: 2px solid var(--clear);
-
-      &.active {
-        background-color: var(--primary);
-      }
     }
   }
 }

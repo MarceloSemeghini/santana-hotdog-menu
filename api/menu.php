@@ -187,7 +187,7 @@ function handleUpdate()
         !$data ||
         !isset($data['id']) ||
         !isset($data['name']) ||
-        !is_array($data['items'])
+        isset($data['items']) && !is_array($data['items'])
     ) {
         http_response_code(400);
         echo json_encode(["status" => "fail", "message" => "Dados inválidos"]);
@@ -203,26 +203,28 @@ function handleUpdate()
         $stmt->execute();
         $stmt->close();
 
-        foreach ($data['items'] as $item) {
-            $status = $item['status'] ?? null;
-            $ingredientsJson = json_encode($item['ingredients']);
-
-            if ($status === 'new') {
-                $itemId = generate_id();
-                $stmtInsert = $conn->prepare("INSERT INTO items (id, category_id, name, price, ingredients) VALUES (?, ?, ?, ?, ?)");
-                $stmtInsert->bind_param("sssds", $itemId, $data['id'], $item['name'], $item['price'], $ingredientsJson);
-                $stmtInsert->execute();
-                $stmtInsert->close();
-            } elseif ($status === 'delete' && !empty($item['id'])) {
-                $stmtDelete = $conn->prepare("DELETE FROM items WHERE id = ? AND category_id = ?");
-                $stmtDelete->bind_param("ss", $item['id'], $data['id']);
-                $stmtDelete->execute();
-                $stmtDelete->close();
-            } else {
-                $stmtUpdate = $conn->prepare("UPDATE items SET name = ?, price = ?, ingredients = ? WHERE id = ? AND category_id = ?");
-                $stmtUpdate->bind_param("sdsss", $item['name'], $item['price'], $ingredientsJson, $item['id'], $data['id']);
-                $stmtUpdate->execute();
-                $stmtUpdate->close();
+        if (!empty($data['items'])) { 
+            foreach ($data['items'] as $item) {
+                $status = $item['status'] ?? null;
+                $ingredientsJson = json_encode($item['ingredients']);
+    
+                if ($status === 'new') {
+                    $itemId = generate_id();
+                    $stmtInsert = $conn->prepare("INSERT INTO items (id, category_id, name, price, ingredients) VALUES (?, ?, ?, ?, ?)");
+                    $stmtInsert->bind_param("sssds", $itemId, $data['id'], $item['name'], $item['price'], $ingredientsJson);
+                    $stmtInsert->execute();
+                    $stmtInsert->close();
+                } elseif ($status === 'delete' && !empty($item['id'])) {
+                    $stmtDelete = $conn->prepare("DELETE FROM items WHERE id = ? AND category_id = ?");
+                    $stmtDelete->bind_param("ss", $item['id'], $data['id']);
+                    $stmtDelete->execute();
+                    $stmtDelete->close();
+                } else {
+                    $stmtUpdate = $conn->prepare("UPDATE items SET name = ?, price = ?, ingredients = ? WHERE id = ? AND category_id = ?");
+                    $stmtUpdate->bind_param("sdsss", $item['name'], $item['price'], $ingredientsJson, $item['id'], $data['id']);
+                    $stmtUpdate->execute();
+                    $stmtUpdate->close();
+                }
             }
         }
 

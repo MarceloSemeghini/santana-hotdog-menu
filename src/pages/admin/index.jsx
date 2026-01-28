@@ -143,23 +143,20 @@ function Admin({ loading }) {
         <button
           disabled={status === "inactive"}
           onClick={() => switchStatus("inactive")}
-          className={status === "inactive" ? "active" : ""}
         >
-          <FaStop size={"2rem"} />
+          <FaStop size={"2rem"} className={status === "inactive" ? "active" : "inactive"}/>
         </button>
         <button
           disabled={status === "paused"}
           onClick={() => switchStatus("paused")}
-          className={status === "paused" ? "active" : ""}
         >
-          <FaPause size={"2rem"} />
+          <FaPause size={"2rem"} className={status === "paused" ? "active" : "inactive"}/>
         </button>
         <button
           disabled={status === "active"}
           onClick={() => switchStatus("active")}
-          className={status === "active" ? "active" : ""}
         >
-          <FaPlay size={"2rem"} />
+          <FaPlay size={"2rem"} className={status === "active" ? "active" : "inactive"}/>
         </button>
       </Floater>
       <Popup
