@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Header from "../components/header";
 import api, { formatString } from "../utils";
 import Floater from "../components/floater";
-import { IoMdAdd } from "react-icons/io";
+import { IoMdAdd, IoMdCheckmark } from "react-icons/io";
 import Popup from "../components/popup";
 import Drawer from "../components/drawer";
 import { LuShoppingCart } from "react-icons/lu";
@@ -71,13 +71,56 @@ function Home({ cart, setCart, loading }) {
     }
   }, [status, pageInfo.vacation, setCart]);
 
+  const normalizeExtras = (extras = []) =>
+    extras
+      .map((e) => `${e.name}:${e.price}`)
+      .sort()
+      .join("|");
+
+  const isSameItem = (cartItem, newItem) => {
+    if (cartItem.id !== newItem.id) return false;
+
+    const cartExtras = normalizeExtras(cartItem.extra);
+    const newExtras = normalizeExtras(newItem.extra);
+
+    return cartExtras === newExtras;
+  };
+
   const addToCart = (item) => {
+    const cardId = item.id;
+
     if (status === "paused" || status === "inactive" || pageInfo.vacation)
       return;
 
-    const updatedCart = [...cart, item];
+    let updatedCart = [...cart];
+
+    const existingIndex = updatedCart.findIndex((cartItem) =>
+      isSameItem(cartItem, item),
+    );
+
+    if (existingIndex !== -1) {
+      updatedCart[existingIndex] = {
+        ...updatedCart[existingIndex],
+        quantity: (updatedCart[existingIndex].quantity ?? 1) + 1,
+      };
+    } else {
+      updatedCart.push({
+        ...item,
+        quantity: 1,
+      });
+    }
+
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+    const element = document.getElementById(cardId);
+    if (element) {
+      element.classList.add("added");
+      setTimeout(() => {
+        element.classList.remove("added");
+      }, 1500);
+    }
+
     setSelectedItem({});
   };
 
@@ -131,12 +174,13 @@ function Home({ cart, setCart, loading }) {
                 (category) =>
                   category?.items?.length > 0 && (
                     <>
-                      <div className="section" key={category.id} id={category.id} style={{paddingTop: "4rem", marginTop: "-4rem"}}>
-                        <h2
-                          className="title"
-                        >
-                          {category.name}
-                        </h2>
+                      <div
+                        className="section"
+                        key={category.id}
+                        id={category.id}
+                        style={{ paddingTop: "4rem", marginTop: "-4rem" }}
+                      >
+                        <h2 className="title">{category.name}</h2>
                         {category.items.map((item) => (
                           <div
                             className={`card ${
@@ -151,8 +195,6 @@ function Home({ cart, setCart, loading }) {
                                   {formatString(item.ingredients)}
                                 </span>
                               )}
-                            </div>
-                            {item.id === selectedItem.id ? (
                               <div className="extra-content">
                                 <ul>
                                   {category.additions?.map((addition) => {
@@ -191,6 +233,10 @@ function Home({ cart, setCart, loading }) {
                                     );
                                   })}
                                 </ul>
+                              </div>
+                            </div>
+                            <div id={item.id}>
+                              {item.id === selectedItem.id ? (
                                 <div className="card-actions">
                                   <span className="price">
                                     R$
@@ -204,6 +250,8 @@ function Home({ cart, setCart, loading }) {
                                     ).toFixed(2)}
                                   </span>
                                   <button
+                                    className="active"
+                                    style={{ width: "8rem" }}
                                     onClick={() => {
                                       const basePrice = parseFloat(
                                         selectedItem.price || 0,
@@ -228,22 +276,32 @@ function Home({ cart, setCart, loading }) {
                                     Confirmar
                                   </button>
                                 </div>
-                              </div>
-                            ) : (
-                              <div className="card-actions">
-                                <span className="price">R${item.price}</span>
-                                <button
-                                  style={{ whiteSpace: "nowrap" }}
-                                  onClick={() =>
-                                    category.additions.length > 0
-                                      ? setSelectedItem({ ...item, extra: [] })
-                                      : addToCart(item)
-                                  }
-                                >
-                                  <IoMdAdd size={"1rem"} /> Adicionar
-                                </button>
-                              </div>
-                            )}
+                              ) : (
+                                <div className="card-actions informative">
+                                  <span className="price">R${item.price}</span>
+                                  <button
+                                    style={{
+                                      whiteSpace: "nowrap",
+                                      width: "8rem",
+                                    }}
+                                    className="active"
+                                    onClick={() =>
+                                      category.additions.length > 0
+                                        ? setSelectedItem({
+                                            ...item,
+                                            extra: [],
+                                          })
+                                        : addToCart(item)
+                                    }
+                                  >
+                                    <div className="done">Adicionado</div>
+                                    <div className="not-done">
+                                      <IoMdAdd size={"1rem"} /> Adicionar
+                                    </div>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -270,16 +328,20 @@ function Home({ cart, setCart, loading }) {
                   .reduce(
                     (accumulator, item) =>
                       accumulator +
-                      (item.totalPrice
-                        ? parseFloat(item.totalPrice)
-                        : parseFloat(item.price)),
+                      (item.quantity ?? 1) *
+                        (item.totalPrice
+                          ? parseFloat(item.totalPrice)
+                          : parseFloat(item.price)),
                     0,
                   )
                   .toFixed(2)}
               </p>
             </span>
           </div>
-          <button onClick={() => (window.location.href = "/checkout")}>
+          <button
+            onClick={() => (window.location.href = "/checkout")}
+            className="active"
+          >
             Finalizar <FaArrowRight size={".85rem"} />
           </button>
         </Floater>

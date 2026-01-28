@@ -41,7 +41,6 @@ button {
   align-items: center;
   border-radius: 2rem;
   background-color: var(--primary);
-  box-shadow: 0 0 4px var(--primary);
   height: fit-content;
   width: fit-content;
   gap: 0.5rem;
@@ -50,13 +49,12 @@ button {
   font-weight: 600;
   font-size: 14px;
 
-  transition: color 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 
   &.invert {
     background-color: transparent;
     border: 2px solid var(--gray);
     color: var(--font-secondary);
-    box-shadow: unset;
   }
 
   svg {
@@ -68,14 +66,12 @@ button {
     border-color: var(--success);
   }
   &.cancel {
-    box-shadow: unset;
     background-color: transparent;
     color: var(--alert);
     border-color: var(--alert);
   }
 
   &:disabled {
-    box-shadow: unset;
     background-color: var(--gray);
     border: 2px solid var(--gray);
   }
@@ -86,7 +82,6 @@ button {
   }
 
   &.inactive {
-    box-shadow: unset;
     background-color: var(--gray);
   }
 }
@@ -112,7 +107,7 @@ svg {
 .container {
   display: flex;
   flex-direction: column;
-  padding: 4rem 2rem 2rem;
+  padding: 4rem 2rem;
   gap: 1rem;
 
   text-align: center;
@@ -138,11 +133,28 @@ svg {
 
   text-align: left;
 
-  .card-actions {
+  .card-value-control {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+
+    .quantity {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      align-items: center;
+
+      font-size: 24px;
+      color: var(--font-primary);
+      font-weight: 800;
+    }
+  }
+
+  .card-actions {
+    display: flex;
+    flex-direction: row;
     gap: 1rem;
-    align-items: flex-end;
+    align-items: flex-start;
     align-self: stretch;
     justify-content: space-between;
   }
@@ -150,7 +162,7 @@ svg {
   .card-content {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 1rem;
   }
 
   .extra-content {
@@ -172,7 +184,7 @@ svg {
             content: "";
             width: 1rem;
             aspect-ratio: 1;
-            border: 2px solid var(--secondary-dark);
+            border: 2px solid var(--primary-dark);
             border-radius: 0.5rem;
             background: var(--secondary);
             transition: 0.3s all ease-in-out;
@@ -182,8 +194,8 @@ svg {
               content: "";
               width: 1rem;
               aspect-ratio: 1;
-              border: 2px solid var(--secondary);
-              background: var(--secondary-dark);
+              border: 2px solid var(--primary-dark);
+              background: var(--primary);
             }
           }
         }
@@ -191,11 +203,44 @@ svg {
     }
   }
 
+  .extra-content {
+    max-height: 0;
+    overflow: hidden;
+  }
   &.expand {
-    flex-direction: column;
-    .card-actions {
-      width: fit-content;
-      align-self: initial;
+    .extra-content {
+      max-height: 10rem;
+    }
+  }
+
+  .informative {
+    .not-done {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .done {
+      display: none;
+    }
+  }
+
+  .added {
+    .informative {
+      .not-done {
+        display: none;
+      }
+    }
+    button.active {
+      background-color: var(--success);
+      border: 2px solid var(--success);
+      filter: drop-shadow(2px 2px 5px var(--success));
+      .done {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        pointer-events: none;
+      }
     }
   }
 }
@@ -205,5 +250,5 @@ svg {
   margin: 0.5rem 0;
   width: 100%;
   border-top: 2px dashed var(--gray);
-  opacity: 0.50;
+  opacity: 0.5;
 }

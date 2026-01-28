@@ -1,11 +1,13 @@
 #checkout {
+  padding-bottom: 4rem;
   .client-info-section {
     display: flex;
+    flex-direction: column;
+    gap: 1rem;
     width: 100%;
   }
   input,
   textarea {
-    width: 100%;
     border: 2px solid var(--gray);
     border-radius: .5rem;
     background-color: transparent;
@@ -14,10 +16,6 @@
     font-size: 14px;
     font-weight: 500;
     padding: .8rem .5rem;
-  }
-  .action-row {
-    background-color: var(--secondary-light);
-    box-shadow: 0px 0px 5px var(--secondary-dark);
   }
   .order-type {
     display: flex;

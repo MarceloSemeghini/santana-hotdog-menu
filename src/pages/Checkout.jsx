@@ -5,14 +5,30 @@ import Popup from "../components/popup";
 import Modal from "../components/modal";
 import { IoClose, IoLocationOutline } from "react-icons/io5";
 import { MdDeliveryDining } from "react-icons/md";
+import Floater from "../components/floater";
+import { FaCircleMinus, FaCirclePlus } from "react-icons/fa6";
 
 function Checkout({ cart, setCart, loading }) {
   const [alertMessage, setAlertMessage] = useState("");
   const [openModal, setOpenModal] = useState(false);
   const [form, setForm] = useState({
     name: "",
-    items: { products: [], note: "" },
+    items: [],
+    note: "" 
   });
+
+  const cartTotal = useMemo(() => {
+    const total = cart.reduce(
+      (accumulator, item) =>
+        accumulator +
+        (item.quantity ?? 1) *
+          (item.totalPrice
+            ? parseFloat(item.totalPrice)
+            : parseFloat(item.price)),
+      0,
+    );
+    return total;
+  }, [cart]);
 
   const [orderType, setOrderType] = useState("local");
 
@@ -33,6 +49,35 @@ function Checkout({ cart, setCart, loading }) {
     }
     return false;
   }, [form, orderType]);
+
+  const increaseQuantity = (index) => {
+    const updatedCart = [...cart];
+
+    updatedCart[index] = {
+      ...updatedCart[index],
+      quantity: (updatedCart[index].quantity ?? 1) + 1,
+    };
+
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+  };
+
+  const decreaseQuantity = (index) => {
+    const updatedCart = [...cart];
+    const currentQty = updatedCart[index]?.quantity ?? 1;
+
+    if (currentQty <= 1) {
+      updatedCart.splice(index, 1);
+    } else {
+      updatedCart[index] = {
+        ...updatedCart[index],
+        quantity: currentQty - 1,
+      };
+    }
+
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+  };
 
   const removeFromCart = (indexToRemove) => {
     loading(true);
@@ -124,8 +169,10 @@ function Checkout({ cart, setCart, loading }) {
       api
         .post("/orders", {
           name: name,
-          items: { products: cart, note: form.items.note },
+          items: cart,
+          note: form.note,
           address: orderType === "delivery" ? form.address : null,
+          cartTotal
         })
         .then((response) => {
           window.location.href = `/checkout/${response.data.data.id}`;
@@ -161,24 +208,45 @@ function Checkout({ cart, setCart, loading }) {
                     </span>
                   )}
                 </div>
-                <div className="card-actions">
-                  <IoClose
-                    size={"2rem"}
-                    onClick={() => removeFromCart(index)}
-                  />
-                  <span className="price" style={{ whiteSpace: "nowrap" }}>
-                    R${" "}
-                    {parseFloat(item.totalPrice ? item.totalPrice : item.price)
-                      .toFixed(2)
-                      .replace(".", ",")}
-                  </span>
+                <div className="card-value-control">
+                  <div className="card-actions">
+                    <span className="price" style={{ whiteSpace: "nowrap" }}>
+                      R${" "}
+                      {parseFloat(
+                        item.totalPrice ? item.totalPrice : item.price,
+                      )
+                        .toFixed(2)
+                        .replace(".", ",")}
+                    </span>
+                    <IoClose
+                      size={"2rem"}
+                      onClick={() => removeFromCart(index)}
+                    />
+                  </div>
+                  <div className="quantity">
+                    <FaCircleMinus
+                      className="active"
+                      size={"1.5rem"}
+                      onClick={() => decreaseQuantity(index)}
+                    />
+
+                    <span>{item.quantity ?? 1} x</span>
+
+                    <FaCirclePlus
+                      className="active"
+                      size={"1.5rem"}
+                      onClick={() => increaseQuantity(index)}
+                    />
+                  </div>
                 </div>
               </div>
             ))}
           </div>
           <span className="separator" />
           <div className="section">
-            <h2 className="title">Nome</h2>
+            <h2 className="title" style={{ margin: "unset" }}>
+              Nome
+            </h2>
             <div className="client-info-section">
               <input
                 type="text"
@@ -217,8 +285,15 @@ function Checkout({ cart, setCart, loading }) {
           {orderType === "delivery" && (
             <>
               <span className="separator" />
-              <h2 className="title">Endereço de Entrega</h2>
+              <h2 className="title" style={{ margin: "unset" }}>
+                Endereço de Entrega
+              </h2>
               <div className="client-info-section">
+                <input
+                  placeholder="Número de telefone para contato"
+                  type="text"
+                />
+                <span className="separator" />
                 <input
                   type="text"
                   placeholder="Digite o CEP"
@@ -293,24 +368,26 @@ function Checkout({ cart, setCart, loading }) {
           )}
           <span className="separator" />
           <div className="section">
-            <h2 className="title">Observações</h2>
+            <h2 className="title" style={{ margin: "unset" }}>
+              Observações
+            </h2>
             <div className="client-info-section">
               <textarea
                 rows="4"
                 cols="50"
                 placeholder="Escreva aqui observações que gostaria de deixar ao pedido."
-                value={form.items.note}
+                value={form.note}
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    items: { ...form.items, note: e.target.value },
+                    note: e.target.value,
                   })
                 }
               />
             </div>
           </div>
         </div>
-        <div className="action-row">
+        <Floater>
           <button
             className="invert"
             onClick={() => (window.location.href = "/")}
@@ -322,23 +399,14 @@ function Checkout({ cart, setCart, loading }) {
               <p>Total:</p>
               <p className="value">
                 R$
-                {cart
-                  .reduce(
-                    (accumulator, item) =>
-                      accumulator +
-                      (item.totalPrice
-                        ? parseFloat(item.totalPrice)
-                        : parseFloat(item.price)),
-                    0,
-                  )
-                  .toFixed(2)}
+                {cartTotal.toFixed(2).replace(".", ",")}
               </p>
             </span>
             <button onClick={() => _finalize()} disabled={!canProceed}>
               Finalizar
             </button>
           </div>
-        </div>
+        </Floater>
       </>
       <Modal active={openModal} close={() => setOpenModal(false)}>
         Ops! Infelizmente nossa entrega é só para a cidade de Santa Lúcia. Mas

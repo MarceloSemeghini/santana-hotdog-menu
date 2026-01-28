@@ -1,4 +1,9 @@
 #admin {
+  .title {
+    &:before {
+      all: unset;
+    }
+  }
   b {
     font-size: 28px;
   }
@@ -32,6 +37,7 @@
     flex-direction: row;
     justify-content: flex-end;
     align-items: flex-end;
+    margin: 1rem 0;
     gap: 1rem;
 
     .local-orders,
@@ -228,5 +234,9 @@
         color: var(--primary);
       }
     }
+  }
+
+  .floater.control {
+    justify-content: flex-end;
   }
 }

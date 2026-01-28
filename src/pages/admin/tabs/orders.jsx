@@ -34,17 +34,21 @@ function Orders({ token, user, loading }) {
       setOrders((prevOrders) =>
         ordersData.map((newOrder) => {
           const existing = prevOrders.find((o) => o.id === newOrder.id);
-          const products =
-            newOrder.items?.products?.map((p, idx) => ({
-              ...p,
-              completed: existing?.items?.products?.[idx]?.completed || false,
-            })) || [];
-          return { ...newOrder, items: { ...newOrder.items, products } };
-        })
+
+          const items = newOrder.items.map((item, idx) => ({
+            ...item,
+            completed: existing?.items?.[idx]?.completed || false,
+          }));
+
+          return {
+            ...newOrder,
+            items,
+          };
+        }),
       );
     } catch (error) {
       setAlertMessage(
-        error.response?.data?.message || "Erro ao buscar pedidos"
+        error.response?.data?.message || "Erro ao buscar pedidos",
       );
     }
   };
@@ -79,66 +83,62 @@ function Orders({ token, user, loading }) {
         order.id === orderId
           ? {
               ...order,
-              items: {
-                ...order.items,
-                products: order.items.products.map((item, iIdx) =>
-                  iIdx === itemIndex
-                    ? { ...item, completed: !item.completed }
-                    : item
-                ),
-              },
+              items: order.items.map((item, idx) =>
+                idx === itemIndex
+                  ? { ...item, completed: !item.completed }
+                  : item,
+              ),
             }
-          : order
-      )
+          : order,
+      ),
     );
   };
 
-  const _updateOrderStatus = async (
-    orderId,
-    status,
-    ignoreIncomplete = false
-  ) => {
+  const requestCompleteOrder = (orderId) => {
     const order = orders.find((o) => o.id === orderId);
+    console.log(order);
+    if (!order) return;
 
-    if (!ignoreIncomplete && status === "completed") {
-      const hasIncomplete = order.items.products.some(
-        (item) => !item.completed
-      );
-      if (hasIncomplete) {
-        setConfirmationType("complete");
-        setSelectedOrderId(orderId);
-        setOpenModal(true);
-        return;
-      }
-    }
+    const hasIncomplete = order.items.some((item) => !item.completed);
 
-    try {
-      loading(true);
-      const response = await api.put("/orders", { id: orderId, status });
-      if (response.data.status === "success") {
-        setOrders((prev) => prev.filter((o) => o.id !== orderId));
-      } else {
-        setAlertMessage(
-          "Erro ao atualizar pedido, tente novamente mais tarde."
-        );
-      }
-    } catch (error) {
-      setAlertMessage(
-        error.response?.data?.message || "Erro ao atualizar pedido"
-      );
-    } finally {
-      setSelectedOrderId(null);
-      loading(false);
+    if (hasIncomplete) {
+      setConfirmationType("complete");
+      setSelectedOrderId(orderId);
+      setOpenModal(true);
+    } else {
+      executeOrderStatusUpdate(orderId, "completed");
     }
   };
 
-  const handleConfirm = (ignore = false) => {
+  const executeOrderStatusUpdate = async (orderId, status) => {
+    try {
+      loading(true);
+      const response = await api.put("/orders", { id: orderId, status });
+
+      if (response.data.status === "success") {
+        setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      } else {
+        setAlertMessage("Erro ao atualizar pedido");
+      }
+    } catch (error) {
+      setAlertMessage(
+        error.response?.data?.message || "Erro ao atualizar pedido",
+      );
+    } finally {
+      loading(false);
+      setSelectedOrderId(null);
+    }
+  };
+
+  const handleConfirm = () => {
     if (!selectedOrderId) return;
 
-    if (confirmationType === "complete")
-      _updateOrderStatus(selectedOrderId, "completed", ignore);
-    else if (confirmationType === "cancel")
-      _updateOrderStatus(selectedOrderId, "canceled");
+    if (confirmationType === "complete") {
+      executeOrderStatusUpdate(selectedOrderId, "completed");
+    } else if (confirmationType === "cancel") {
+      executeOrderStatusUpdate(selectedOrderId, "canceled");
+    }
+
     setOpenModal(false);
   };
 
@@ -171,17 +171,20 @@ function Orders({ token, user, loading }) {
               {order.order_code} - {order.name}
             </h2>
 
-            {order.items.note && (
+            {order?.note && (
               <>
-                <p>Nota: {order.items.note}</p>
+                <p>Nota: {order.note}</p>
                 <span className="separator" />
               </>
             )}
 
-            {order.items.products?.map((item, index) => (
+            {order?.items?.map((item, index) => (
               <div
-                key={item.id || index}
-                onClick={() => toggleItemCompleted(order.id, index)}
+                key={item.id + index}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleItemCompleted(order.id, index);
+                }}
               >
                 {index > 0 && <span className="separator" />}
                 <p>
@@ -202,17 +205,28 @@ function Orders({ token, user, loading }) {
               <>
                 <span className="separator" />
                 <div className="order-address">
-                  <p><b>Cep:</b> {order?.address.postalCode.slice(0, 5) + "-" + order?.address.postalCode.slice(5)}</p>
-                  <p><b>Bairro:</b> {order?.address.district}</p>
-                  <p><b>Rua:</b> {order?.address.address}</p>
-                  <p><b>Número:</b> {order?.address.number}</p>
+                  <p>
+                    <b>Cep:</b>{" "}
+                    {order?.address.postalCode.slice(0, 5) +
+                      "-" +
+                      order?.address.postalCode.slice(5)}
+                  </p>
+                  <p>
+                    <b>Bairro:</b> {order?.address.district}
+                  </p>
+                  <p>
+                    <b>Rua:</b> {order?.address.address}
+                  </p>
+                  <p>
+                    <b>Número:</b> {order?.address.number}
+                  </p>
                 </div>
               </>
             )}
 
             <span className="separator" />
             <p className="total">
-              <b>Total: R$ {order?.total_value.replace(".", ",")}</b> 
+              <b>Total: R$ {order?.total_value.replace(".", ",")}</b>
             </p>
 
             <span className="separator" />
@@ -229,7 +243,7 @@ function Orders({ token, user, loading }) {
               </button>
               <button
                 className="finish"
-                onClick={() => _updateOrderStatus(order.id, "completed")}
+                onClick={() => requestCompleteOrder(order.id)}
               >
                 <IoMdCheckmark size={"2rem"} />
               </button>

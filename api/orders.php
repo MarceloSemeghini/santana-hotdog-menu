@@ -39,23 +39,10 @@ function handlePost()
     $id = generate_id();
     $name = $body["name"];
     $orderData = $body["items"];
-    $note = $body["note"] ?? null;
+    $totalValue = round($body["cartTotal"], 2);
+    $note = $body["note"];
 
     $address = isset($body["address"]) ? json_encode($body["address"]) : null;
-
-    $totalValue = 0;
-
-    if (!empty($orderData['products'])) {
-        foreach ($orderData['products'] as $item) {
-            $price = isset($item['totalPrice'])
-                ? floatval($item['totalPrice'])
-                : floatval($item['price']);
-
-            $totalValue += $price;
-        }
-    }
-
-    $totalValue = round($totalValue, 2);
 
     $jsonOrder = is_string($orderData) ? $orderData : json_encode($orderData);
 
@@ -87,7 +74,7 @@ function handlePost()
         ");
 
         $stmt->bind_param(
-            "sssiddsss",
+            "sssidssss",
             $id,
             $name,
             $jsonOrder,

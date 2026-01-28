@@ -38,7 +38,7 @@ function OrderTicket({}) {
     <div className="page" id="checkout">
       <Header></Header>
       <div className="container" id="ticket">
-        <div className="order-ticket">
+        <div className="order-ticket card">
           <span className="ticket-code">{order?.order_code}</span>
           <b className="title">Sua Comanda</b>
           <span className="separator" />
