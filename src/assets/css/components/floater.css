@@ -82,6 +82,7 @@
 
   &.hidden {
     transform: translateY(100%);
+    pointer-events: none;
   }
 
   &.control {

@@ -14,7 +14,7 @@ function Checkout({ cart, setCart, loading }) {
   const [form, setForm] = useState({
     name: "",
     items: [],
-    note: "" 
+    note: "",
   });
 
   const cartTotal = useMemo(() => {
@@ -99,6 +99,20 @@ function Checkout({ cart, setCart, loading }) {
     return digits.slice(0, 5) + "-" + digits.slice(5, 8);
   };
 
+  const maskPhone = (value) => {
+    const digits = value.replace(/\D/g, "");
+
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 3) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 7)
+      return `(${digits.slice(0, 2)}) ${digits.slice(2, 3)} ${digits.slice(3)}`;
+
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 3)} ${digits.slice(
+      3,
+      7,
+    )}-${digits.slice(7, 11)}`;
+  };
+
   const handleSearchPostalCode = async (postalCode) => {
     if (!postalCode || postalCode.length !== 8) return;
 
@@ -155,6 +169,10 @@ function Checkout({ cart, setCart, loading }) {
       return;
     }
     if (orderType === "delivery") {
+      if (!form.phone) {
+        setAlertMessage("Por favor, informe o número para contato");
+        return;
+      }
       if (
         !form.address?.postalCode ||
         !form.address?.address ||
@@ -172,7 +190,8 @@ function Checkout({ cart, setCart, loading }) {
           items: cart,
           note: form.note,
           address: orderType === "delivery" ? form.address : null,
-          cartTotal
+          phone: orderType === "delivery" ? form.phone : null,
+          cartTotal,
         })
         .then((response) => {
           window.location.href = `/checkout/${response.data.data.id}`;
@@ -286,14 +305,29 @@ function Checkout({ cart, setCart, loading }) {
             <>
               <span className="separator" />
               <h2 className="title" style={{ margin: "unset" }}>
-                Endereço de Entrega
+                Telefone Para Contato
               </h2>
               <div className="client-info-section">
                 <input
                   placeholder="Número de telefone para contato"
                   type="text"
+                  value={maskPhone(form.phone || "")}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, "");
+
+                    setForm({
+                      ...form,
+                      phone: raw,
+                    });
+                  }}
                 />
-                <span className="separator" />
+              </div>
+              <span className="separator" />
+
+              <h2 className="title" style={{ margin: "unset" }}>
+                Endereço de Entrega
+              </h2>
+              <div className="client-info-section">
                 <input
                   type="text"
                   placeholder="Digite o CEP"

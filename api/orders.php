@@ -43,6 +43,7 @@ function handlePost()
     $note = $body["note"];
 
     $address = isset($body["address"]) ? json_encode($body["address"]) : null;
+    $phone = isset($body["phone"]) ? $body["phone"] : null;
 
     $jsonOrder = is_string($orderData) ? $orderData : json_encode($orderData);
 
@@ -68,13 +69,13 @@ function handlePost()
     try {
         $stmt = $conn->prepare("
             INSERT INTO orders 
-                (id, name, order_data, order_code, total_value, note, created_at, work_date, address)
+                (id, name, order_data, order_code, total_value, note, created_at, work_date, address, phone)
             VALUES 
-                (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->bind_param(
-            "sssidssss",
+            "sssidsssss",
             $id,
             $name,
             $jsonOrder,
@@ -83,7 +84,8 @@ function handlePost()
             $note,
             $currentDate,
             $workDate,
-            $address
+            $address,
+            $phone
         );
 
         $stmt->execute();
@@ -120,7 +122,7 @@ function handleGet()
     $status = $_GET['status'] ?? null;
     $id = $_GET['id'] ?? null;
 
-    $selectFields = "id, name, order_code, total_value, status, created_at, work_date, note, address";
+    $selectFields = "id, name, order_code, total_value, status, created_at, work_date, note, address, phone";
 
     if ($includeItems) {
         $selectFields .= ", order_data";
@@ -188,7 +190,8 @@ function handleGet()
             "note" => $row['note'],
             "created_at" => $row['created_at'],
             "work_date" => $row['work_date'],
-            "address" => json_decode($row['address'], true)
+            "address" => json_decode($row['address'], true),
+            "phone" => $row['phone']
         ];
 
         if ($includeItems) {

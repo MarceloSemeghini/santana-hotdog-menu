@@ -201,6 +201,18 @@ function Orders({ token, user, loading }) {
               </div>
             ))}
 
+            {order?.phone && (
+              <>
+                <span className="separator" />
+                <div className="order-address">
+                  <p>
+                    <b>Telefone:</b>{" "}
+                    {`(${order.phone.slice(0, 2)}) ${order.phone[2]} ${order.phone.slice(3, 7)} - ${order.phone.slice(7, 11)}`}
+                  </p>
+                </div>
+              </>
+            )}
+
             {order?.address && (
               <>
                 <span className="separator" />
