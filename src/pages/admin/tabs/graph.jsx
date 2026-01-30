@@ -38,12 +38,12 @@ function Graph({ token, loading }) {
     }
   };
 
-  const formatDateBR = (dateString) => {
-    if (!dateString) return "";
+  function formatDateBR(dateString) {
+    if (typeof dateString !== "string") return "";
 
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR");
-  };
+    const [year, month, day] = dateString.split("-");
+    return `${day}/${month}/${year}`;
+  }
 
   return (
     <>

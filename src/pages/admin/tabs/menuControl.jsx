@@ -75,7 +75,11 @@ function MenuControl({ token, loading }) {
         setCategories(
           response.data.data
             .filter((a) => a.name !== "info")
-            .map(cat => ({ ...cat, items: cat.items || [], additions: cat.additions || [] }))
+            .map((cat) => ({
+              ...cat,
+              items: cat.items || [],
+              additions: cat.additions || [],
+            })),
         );
       });
     } catch (error) {
@@ -108,8 +112,8 @@ function MenuControl({ token, loading }) {
     const categoryData = forceData.name
       ? forceData
       : selectedCategory
-      ? selectedCategory
-      : form;
+        ? selectedCategory
+        : form;
     let message = "Categoria atualizada com sucesso";
 
     if (type === "item") {
@@ -127,7 +131,7 @@ function MenuControl({ token, loading }) {
 
       if (form.id) {
         categoryData.items = categoryData.items.map((item) =>
-          item.id === form.id ? itemData : item
+          item.id === form.id ? itemData : item,
         );
         message = "Item alterado com sucesso";
       } else {
@@ -141,7 +145,7 @@ function MenuControl({ token, loading }) {
       const additions = categoryData.additions || [];
 
       const duplicated = additions.find(
-        (addition) => addition.name === form.name
+        (addition) => addition.name === form.name,
       );
       if (duplicated && !form.originalName) {
         setPopupMessage({
@@ -155,7 +159,7 @@ function MenuControl({ token, loading }) {
 
       if (form.originalName) {
         categoryData.additions = additions.map((addition) =>
-          addition.name === form.originalName ? additionData : addition
+          addition.name === form.originalName ? additionData : addition,
         );
         message = "Adição alterada com sucesso";
       } else {
@@ -178,8 +182,8 @@ function MenuControl({ token, loading }) {
 
         setCategories((prev) =>
           prev.map((category) =>
-            category.id === updatedCategory.id ? updatedCategory : category
-          )
+            category.id === updatedCategory.id ? updatedCategory : category,
+          ),
         );
 
         setOpenModal(false);
@@ -248,7 +252,7 @@ function MenuControl({ token, loading }) {
         });
 
         setCategories((prev) =>
-          prev.filter((category) => category.id !== categoryId)
+          prev.filter((category) => category.id !== categoryId),
         );
       } catch (error) {
         setPopupMessage({
@@ -264,12 +268,12 @@ function MenuControl({ token, loading }) {
     }
     if (categoryId && itemId && !additionName) {
       const categoryData = categories.find(
-        (category) => category.id === categoryId
+        (category) => category.id === categoryId,
       );
       const updatedCategory = {
         ...categoryData,
         items: categoryData.items.map((item) =>
-          item.id === itemId ? { ...item, status: "delete" } : item
+          item.id === itemId ? { ...item, status: "delete" } : item,
         ),
       };
       try {
@@ -284,8 +288,8 @@ function MenuControl({ token, loading }) {
           prev.map((category) =>
             category.id === response.data.category.id
               ? response.data.category
-              : category
-          )
+              : category,
+          ),
         );
       } catch (error) {
         setPopupMessage({
@@ -303,7 +307,7 @@ function MenuControl({ token, loading }) {
       const updatedCategory = {
         ...categoryData,
         additions: categoryData.additions.filter(
-          (addition) => addition.name !== additionName
+          (addition) => addition.name !== additionName,
         ),
       };
 
@@ -318,8 +322,8 @@ function MenuControl({ token, loading }) {
         prev.map((category) =>
           category.id === response.data.category.id
             ? response.data.category
-            : category
-        )
+            : category,
+        ),
       );
     }
   };
@@ -386,6 +390,7 @@ function MenuControl({ token, loading }) {
                     </div>
                   </div>
                   <div className="card-actions">
+                    <span className="price">R${item.price}</span>
                     <Actions size={"2rem"}>
                       <FaEdit
                         size={"1.5rem"}
@@ -413,7 +418,6 @@ function MenuControl({ token, loading }) {
                         }}
                       />
                     </Actions>
-                    <span className="price">R${item.price}</span>
                   </div>
                 </div>
               ))}
@@ -447,7 +451,7 @@ function MenuControl({ token, loading }) {
                                   ...addition,
                                   originalName: addition.name,
                                 },
-                                "addition"
+                                "addition",
                               );
                             }}
                           />

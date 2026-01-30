@@ -76,6 +76,44 @@
     width: 100%;
     .card-content {
       width: 100%;
+
+      .order-note {
+        color: var(--font-secondary);
+        font-size: 18px;
+        font-weight: 600;
+
+        b {
+          font-size: 20px;
+        }
+      }
+      .order-item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        h3 {
+          color: var(--font-primary);
+          b {
+            font-size: 20px;
+            font-family: "Fredoka";
+          }
+        }
+        p {
+          color: var(--font-secondary);
+
+          b {
+            font-size: 16px;
+          }
+        }
+
+        svg {
+          animation: forwards 0.5s materialize;
+          position: absolute;
+          right: 0;
+          top: 50%;
+          transform: translate(-50%, -50%);
+        }
+      }
     }
     .order-address {
       display: flex;

@@ -17,7 +17,7 @@
     padding: 1rem;
     margin: 1rem;
     border-radius: 1rem;
-    border: 2px solid var(--primary);
+    box-shadow: 0 5px 10px var(--font-secondary);
     max-height: 80vh;
     overflow-y: auto;
 

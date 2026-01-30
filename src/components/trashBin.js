@@ -43,7 +43,10 @@ function TrashBin({ open, close, token, setAlertMessage, loading }) {
   const recoverOrder = async (orderId) => {
     try {
       loading(true);
-      const response = await api.put("/orders", { id: orderId, status: "active" });
+      const response = await api.put("/orders", {
+        id: orderId,
+        status: "active",
+      });
       if (response.data.status === "success") {
         setCanceledOrders((prev) => prev.filter((o) => o.id !== orderId));
       } else {
@@ -63,8 +66,10 @@ function TrashBin({ open, close, token, setAlertMessage, loading }) {
   const formatDateBR = (dateString) => {
     if (!dateString) return "";
 
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR");
+    const dateData = new Date(dateString);
+    const [year, month, day] = dateData.split("-");
+    const date = `${day}/${month}/${year}`;
+    return date;
   };
 
   return (
@@ -74,7 +79,11 @@ function TrashBin({ open, close, token, setAlertMessage, loading }) {
           {canceledOrders?.map((order) => {
             const [date, time] = order.created_at.split(" ");
             return (
-              <div className="card" key={order.id} onClick={() => recoverOrder(order.id)}>
+              <div
+                className="card"
+                key={order.id}
+                onClick={() => recoverOrder(order.id)}
+              >
                 <div className="card-content">
                   <p className="order-date">
                     <span>{formatDateBR(date)}</span>

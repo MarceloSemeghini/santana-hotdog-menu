@@ -6,6 +6,8 @@
   width: fit-content;
   margin: 1rem auto;
 
+  font-family: "Fredoka";
+
   &:before {
     content: "";
     position: absolute;
@@ -24,6 +26,8 @@
   color: var(--font-secondary);
   font-size: 16px;
   font-weight: 800;
+
+  font-family: "Fredoka";
 }
 
 .content {
@@ -37,4 +41,6 @@
   color: var(--primary);
   font-size: 20px;
   font-weight: 800;
+
+  font-family: "Fredoka";
 }

@@ -286,7 +286,7 @@ function Home({ cart, setCart, loading }) {
                                     }}
                                     className="active"
                                     onClick={() =>
-                                      category.additions.length > 0
+                                      category.additions?.length > 0
                                         ? setSelectedItem({
                                             ...item,
                                             extra: [],
@@ -312,7 +312,7 @@ function Home({ cart, setCart, loading }) {
         )}
       </div>
       {status !== "inactive" && (
-        <Floater condition={cart.length > 0}>
+        <Floater condition={cart?.length > 0}>
           <div className="total-wrapper">
             <div className="bubble">
               <LuShoppingCart size={"1rem"} />

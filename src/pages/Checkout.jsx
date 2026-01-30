@@ -6,7 +6,7 @@ import Modal from "../components/modal";
 import { IoClose, IoLocationOutline } from "react-icons/io5";
 import { MdDeliveryDining } from "react-icons/md";
 import Floater from "../components/floater";
-import { FaCircleMinus, FaCirclePlus } from "react-icons/fa6";
+import { FaMinus, FaPlus } from "react-icons/fa6";
 
 function Checkout({ cart, setCart, loading }) {
   const [alertMessage, setAlertMessage] = useState("");
@@ -14,6 +14,9 @@ function Checkout({ cart, setCart, loading }) {
   const [form, setForm] = useState({
     name: "",
     items: [],
+    address: { postalCode: "", address: "", number: "", complement: "" },
+    payment: { type: "PIX", change: "" },
+    phone: "",
     note: "",
   });
 
@@ -113,6 +116,13 @@ function Checkout({ cart, setCart, loading }) {
     )}-${digits.slice(7, 11)}`;
   };
 
+  const handleSelectPayment = (event) => {
+    setForm({
+      ...form,
+      payment: { ...form.payment, type: event.target.value },
+    });
+  };
+
   const handleSearchPostalCode = async (postalCode) => {
     if (!postalCode || postalCode.length !== 8) return;
 
@@ -157,7 +167,7 @@ function Checkout({ cart, setCart, loading }) {
     }
   };
 
-  const _finalize = () => {
+  const _finalize = async () => {
     const name = form.name.trim();
 
     if (name === "" || name.length < 2) {
@@ -173,6 +183,10 @@ function Checkout({ cart, setCart, loading }) {
         setAlertMessage("Por favor, informe o número para contato");
         return;
       }
+      if (!form.payment) {
+        setAlertMessage("Por favor, informe a forma de pagamento");
+        return;
+      }
       if (
         !form.address?.postalCode ||
         !form.address?.address ||
@@ -184,24 +198,30 @@ function Checkout({ cart, setCart, loading }) {
     }
 
     try {
-      api
-        .post("/orders", {
-          name: name,
-          items: cart,
-          note: form.note,
-          address: orderType === "delivery" ? form.address : null,
-          phone: orderType === "delivery" ? form.phone : null,
-          cartTotal,
-        })
-        .then((response) => {
-          window.location.href = `/checkout/${response.data.data.id}`;
-        });
+      const payload = {
+        name,
+        items: cart,
+        note: form.note,
+        cartTotal,
+      };
+
+      if (orderType === "delivery") {
+        payload.address = form.address;
+        payload.payment = form.payment;
+        payload.phone = form.phone;
+      }
+
+      const response = await api.post("/orders", payload);
+
+      window.location.href = `/checkout/${response.data.data.id}`;
     } catch (error) {
       setAlertMessage(
         error.response?.data?.message || "Erro ao finalizar pedido",
       );
     }
   };
+
+  console.log(form);
 
   return (
     <div className="page" id="checkout">
@@ -243,7 +263,7 @@ function Checkout({ cart, setCart, loading }) {
                     />
                   </div>
                   <div className="quantity">
-                    <FaCircleMinus
+                    <FaMinus
                       className="active"
                       size={"1.5rem"}
                       onClick={() => decreaseQuantity(index)}
@@ -251,7 +271,7 @@ function Checkout({ cart, setCart, loading }) {
 
                     <span>{item.quantity ?? 1} x</span>
 
-                    <FaCirclePlus
+                    <FaPlus
                       className="active"
                       size={"1.5rem"}
                       onClick={() => increaseQuantity(index)}
@@ -304,6 +324,67 @@ function Checkout({ cart, setCart, loading }) {
           {orderType === "delivery" && (
             <>
               <span className="separator" />
+              <h2 className="title" style={{ margin: "unset" }}>
+                Forma de Pagamento
+              </h2>
+              <div className="client-info-section">
+                <div className="radio-selection">
+                  <label>
+                    <input
+                      type="radio"
+                      value="PIX"
+                      checked={form.payment.type === "PIX"}
+                      onChange={handleSelectPayment}
+                    />
+                    <span>PIX</span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      value="Dinheiro"
+                      checked={form.payment.type === "Dinheiro"}
+                      onChange={handleSelectPayment}
+                    />
+                    <span>Dinheiro</span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      value="Débito"
+                      checked={form.payment.type === "Débito"}
+                      onChange={handleSelectPayment}
+                    />
+                    <span>Débito</span>
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      value="Crédito"
+                      checked={form.payment.type === "Crédito"}
+                      onChange={handleSelectPayment}
+                    />
+                    <span>Crédito</span>
+                  </label>
+                </div>
+                {form.payment.type === "Dinheiro" && (
+                  <input
+                    type="number"
+                    value={form.payment.change}
+                    onChange={(event) =>
+                      setForm({
+                        ...form,
+                        payment: {
+                          ...form.payment,
+                          change: event.target.value,
+                        },
+                      })
+                    }
+                    placeholder="Troco para quanto"
+                  />
+                )}
+              </div>
+              <span className="separator" />
+
               <h2 className="title" style={{ margin: "unset" }}>
                 Telefone Para Contato
               </h2>
